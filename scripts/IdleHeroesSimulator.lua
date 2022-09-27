@@ -342,7 +342,11 @@ task.spawn(function()
 		if settings.autoLevel then
 			autolevel()
 		end
+	end
+end)
 
+task.spawn(function()
+	while task.wait(1) do
 		if settings.autoSkills.enraged.enabled then
 			useSkill(settings.autoSkills.enraged.text)
 		end
