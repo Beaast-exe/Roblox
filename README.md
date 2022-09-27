@@ -10,5 +10,6 @@ loadstring(game:HttpGet("https://raw.githubusercontent.com/Beaast-exe/Roblox/mas
 ## Supported Games:
 - Slime Tower Tycoon
 - Race Clicker
+- Idle Heroes Simulator
 
 ## [DISCORD](https://discord.gg/MeAXMSCc9Q)
