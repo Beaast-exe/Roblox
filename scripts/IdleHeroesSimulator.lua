@@ -4,6 +4,7 @@ local VirtualInputManager = game:GetService("VirtualInputManager")
 local localPlayer = game:GetService("Players").LocalPlayer
 local Mouse = localPlayer:GetMouse()
 local attackEvent = game:GetService("ReplicatedStorage").Packages._Index:FindFirstChild("sleitnick_knit@1.4.7").knit.Services.WeaponService.RE.Swing
+local skillEvent = game:GetService("ReplicatedStorage").Packages._Index:FindFirstChild("sleitnick_knit@1.4.7").knit.Services.HeroService.RE.UseSkill
 
 -- // FEATURE DEFINING \\ --
 local settings = {
@@ -11,24 +12,22 @@ local settings = {
 	autoLevel = false,
 	autoSkills = {
 		enraged = {
-			enabled = false,
-			text = "Enraged"
+			enabled = false
 		},
 		eruption = {
-			enabled = false,
-			text = "Eruption"
+			enabled = false
 		},
 		misfortune = {
-			enabled = false,
-			text = "Misfortune"
+			enabled = false
 		},
 		goldenRain = {
-			enabled = false,
-			text = "Golden Rain"
+			enabled = false
 		},
 		goldPotion = {
-			enabled = false,
-			text = "Gold Potion"
+			enabled = false
+		},
+		coldRunes = {
+			enabled = false
 		}
 	},
 	autoClick = {
@@ -103,7 +102,7 @@ local AUTOSKILLS = Autoskills:AddSection({
 })
 
 AUTOSKILLS:AddToggle({
-	Name = "AUTO - Enraged",
+	Name = "[1] AUTO - Enraged",
 	Default = false,
 	Callback = function(bool)
 		settings.autoSkills.enraged.enabled = bool
@@ -111,7 +110,7 @@ AUTOSKILLS:AddToggle({
 })
 
 AUTOSKILLS:AddToggle({
-	Name = "AUTO - Eruption",
+	Name = "[2] AUTO - Eruption",
 	Default = false,
 	Callback = function(bool)
 		settings.autoSkills.eruption.enabled = bool
@@ -119,7 +118,7 @@ AUTOSKILLS:AddToggle({
 })
 
 AUTOSKILLS:AddToggle({
-	Name = "AUTO - Misfortune",
+	Name = "[3] AUTO - Misfortune",
 	Default = false,
 	Callback = function(bool)
 		settings.autoSkills.misfortune.enabled = bool
@@ -127,7 +126,7 @@ AUTOSKILLS:AddToggle({
 })
 
 AUTOSKILLS:AddToggle({
-	Name = "AUTO - Golden Rain",
+	Name = "[4] AUTO - Golden Rain",
 	Default = false,
 	Callback = function(bool)
 		settings.autoSkills.goldenRain.enabled = bool
@@ -135,10 +134,18 @@ AUTOSKILLS:AddToggle({
 })
 
 AUTOSKILLS:AddToggle({
-	Name = "AUTO - Gold Potion",
+	Name = "[5] AUTO - Gold Potion",
 	Default = false,
 	Callback = function(bool)
 		settings.autoSkills.goldPotion.enabled = bool
+	end
+})
+
+AUTOSKILLS:AddToggle({
+	Name = "[6] AUTO - Cold Runes",
+	Default = false,
+	Callback = function(bool)
+		settings.autoSkills.coldRunes.enabled = bool
 	end
 })
 
@@ -328,7 +335,6 @@ function autolevel()
 end
 
 function useSkill(skillName)
-	local skillEvent = game:GetService("ReplicatedStorage").Packages._Index:FindFirstChild("sleitnick_knit@1.4.7").knit.Services.HeroService.RE.UseSkill
 	skillEvent:FireServer(skillName)
 end
 
@@ -348,23 +354,27 @@ end)
 task.spawn(function()
 	while task.wait(1) do
 		if settings.autoSkills.enraged.enabled then
-			useSkill(settings.autoSkills.enraged.text)
+			skillEvent:FireServer("Enraged")
 		end
 	
 		if settings.autoSkills.eruption.enabled then
-			useSkill(settings.autoSkills.eruption.text)
+			skillEvent:FireServer("Eruption")
 		end
 	
 		if settings.autoSkills.misfortune.enabled then
-			useSkill(settings.autoSkills.misfortune.text)
+			skillEvent:FireServer("Misfortune")
 		end
 	
 		if settings.autoSkills.goldenRain.enabled then
-			useSkill(settings.autoSkills.goldenRain.text)
+			skillEvent:FireServer("Golden Rain")
 		end
 
 		if settings.autoSkills.goldPotion.enabled then
-			useSkill(settings.autoSkills.goldPotion.text)
+			skillEvent:FireServer("Gold Potion")
+		end
+
+		if settings.autoSkills.coldRunes.enabled then
+			skillEvent:FireServer("Cold Runes")
 		end
 	end
 end)
