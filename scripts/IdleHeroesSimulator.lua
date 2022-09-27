@@ -60,11 +60,26 @@ local Autos = Main:AddSection({
 	Name = "Autos"
 })
 
-Autos:AddToggle({
+local farm = Autos:AddToggle({
 	Name = "Enable Auto Farm",
 	Default = false,
 	Callback = function(bool)
 		settings.autoFarm = bool
+	end
+})
+
+Autos:AddBind({
+	Name = "Toggle Auto Farm BIND",
+	Default = Enum.KeyCode.R,
+	Hold = false,
+	Callback = function()
+		if settings.autoFarm then
+			settings.autoFarm = false
+			farm:Set(false)
+		else
+			settings.autoFarm = true
+			farm:Set(true)
+		end
 	end
 })
 
