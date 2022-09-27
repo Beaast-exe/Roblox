@@ -10,6 +10,7 @@ local skillEvent = game:GetService("ReplicatedStorage").Packages._Index:FindFirs
 local settings = {
 	autoFarm = false,
 	autoLevel = false,
+	autoLastLevel = false,
 	autoSkills = {
 		enraged = {
 			enabled = false
@@ -87,6 +88,14 @@ Autos:AddToggle({
 	Default = false,
 	Callback = function(bool)
 		settings.autoLevel = bool
+	end
+})
+
+Autos:AddToggle({
+	Name = "Enable Auto Last Level",
+	Default = false,
+	Callback = function(bool)
+		settings.autoLastLevel = bool
 	end
 })
 
@@ -323,12 +332,41 @@ function levelPosition()
 	end
 end
 
+
+
+function lastLevelPosition()
+	if isPlayerAlive() and canLevelUp() then
+		for _, level in next, Workspace:WaitForChild("Plots")[getPlot()].Buttons.LastLevel:GetChildren() do
+			if level:IsA("Part") and level.Name:find("Touch") then
+				return level.CFrame
+			end
+		end
+	end
+end
+
 function autolevel()
 	if isPlayerAlive() and canLevelUp() then
 		for _, level in next, Workspace:WaitForChild("Plots")[getPlot()].Buttons.NextLevel:GetChildren() do
 			local touch = string.find(level.Name, "Touch")
 			if touch then
 				teleportTo(levelPosition())
+				wait(0.1)
+				teleportTo(getEnemyLocation())
+				wait(0.1)
+			end
+		end
+	end
+end
+
+function autolastlevel()
+	if isPlayerAlive() then
+		for _, level in next, Workspace:WaitForChild("Plots")[getPlot()].Buttons.LastLevel:GetChildren() do
+			local touch = string.find(level.Name, "Touch")
+			if touch then
+				teleportTo(lastLevelPosition())
+				wait(0.1)
+				teleportTo(getEnemyLocation())
+				wait(0.1)
 			end
 		end
 	end
@@ -347,6 +385,10 @@ task.spawn(function()
 
 		if settings.autoLevel then
 			autolevel()
+		end
+		
+		if settings.autoLastLevel then
+			autolastlevel()
 		end
 	end
 end)
