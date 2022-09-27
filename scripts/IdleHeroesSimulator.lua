@@ -356,26 +356,32 @@ task.spawn(function()
 		if settings.autoSkills.enraged.enabled then
 			skillEvent:FireServer("Enraged")
 		end
-	
+		task.wait(0.2)
+		
 		if settings.autoSkills.eruption.enabled then
 			skillEvent:FireServer("Eruption")
 		end
-	
+		task.wait(0.2)
+		
 		if settings.autoSkills.misfortune.enabled then
 			skillEvent:FireServer("Misfortune")
 		end
-	
+		task.wait(0.2)
+		
 		if settings.autoSkills.goldenRain.enabled then
 			skillEvent:FireServer("Golden Rain")
 		end
+		task.wait(0.2)
 
 		if settings.autoSkills.goldPotion.enabled then
 			skillEvent:FireServer("Gold Potion")
 		end
+		task.wait(0.2)
 
 		if settings.autoSkills.coldRunes.enabled then
 			skillEvent:FireServer("Cold Runes")
 		end
+		task.wait(0.2)
 	end
 end)
 
