@@ -17,4 +17,7 @@ elseif placeID == 9285238704 then
 -- // IDLE HEROES SIMULATOR \\ --
 elseif placeID == 9264596435 then
 	loadstring(game:HttpGet("https://raw.githubusercontent.com/Beaast-exe/Roblox/master/scripts/IdleHeroesSimulator.lua"))()
+-- // WEAPON BLACKSMITH TYCOON \\ --
+elseif placeID == 10821263959 then
+	loadstring(game:HttpGet("https://raw.githubusercontent.com/Beaast-exe/Roblox/master/scripts/WeaponBlacksmithTycoon.lua"))()
 end
