@@ -114,7 +114,7 @@ MISC:AddSlider({
 
 -- // CREDITS TAB \\ --
 local credits = Window:MakeTab({
-	Name = "Misc",
+	Name = "Credits",
 	Icon = "rbxassetid://4483345998",
 	PremiumOnly = false
 })
