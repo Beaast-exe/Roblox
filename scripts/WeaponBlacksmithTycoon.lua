@@ -47,6 +47,18 @@ local Autos = Main:AddSection({
 	Name = "Autos"
 })
 
+Autos:AddSlider({
+	Name = "Auto Farm Interval",
+	Min = 5,
+	Max = 60,
+	Default = 10,
+	Color = Color3.fromRGB(0, 255, 255),
+	Increment = 5,
+	Callback = function(value)
+		settings.autoFarm.interval = value
+	end
+})
+
 local farm = Autos:AddToggle({
 	Name = "Enable Auto Farm",
 	Default = false,
@@ -75,6 +87,30 @@ Autos:AddToggle({
 	Default = false,
 	Callback = function(bool)
 		settings.autoSwing.enabled = bool
+	end
+})
+
+-- // TELEPORTS TAB \\ --
+local TeleportsTab = Window:MakeTab({
+	Name = "Teleports",
+	Icon = "rbxassetid://4483345998",
+	PremiumOnly = false
+})
+
+local TeleportSection = TeleportsTab:AddSection({
+	Name = "Teleports"
+})
+
+local teleportsDropdown = TeleportSection:AddDropdown({
+	Name = "Teleports",
+	Default = "Enemy",
+	Options = {"Enemy", "BanshieHouse", "PickupCircle", "RebirthCircle", "SellCircle", "SpellSchoolCircle", "UpgradeCircle"}
+})
+
+TeleportSection:AddButton({
+	Name = "Teleport to Selected",
+	Callback = function()
+		doTeleport(teleportsDropdown.Value)
 	end
 })
 
@@ -240,8 +276,17 @@ function getTycoonName()
 	end
 end
 
+function getEnemyLocation()
+	for _, enemy in next, getPlayerTycoon().Enemies:GetChildren() do
+		if enemy then
+			return enemy.Hitbox.CFrame * CFrame.new(0, 5, 0)
+		end
+	end
+end
+
 local playerTycoonInfo = {
 	spawn = getPlayerTycoon().Spawn.CFrame,
+	enemyLocation = getEnemyLocation(),
 	interactiveCircles = {
 		BanshieHouse = getPlayerTycoon().InteractiveCircles.BanshieHouse.CFrame,
 		PickupCircle = getPlayerTycoon().InteractiveCircles.PickupCircle.CFrame,
@@ -253,6 +298,24 @@ local playerTycoonInfo = {
 
 }
 
+function doTeleport(teleport)
+	if teleport == "Enemy" then
+		teleportTo(playerTycoonInfo.enemyLocation)
+	elseif teleport == "BanshieHouse" then
+		teleportTo(playerTycoonInfo.interactiveCircles.BanshieHouse)
+	elseif teleport == "PickupCircle" then
+		teleportTo(playerTycoonInfo.interactiveCircles.PickupCircle)
+	elseif teleport == "RebirthCircle" then
+		teleportTo(playerTycoonInfo.interactiveCircles.RebirthCircle)
+	elseif teleport == "SellCircle" then
+		teleportTo(playerTycoonInfo.interactiveCircles.SellCircle)
+	elseif teleport == "SpellSchoolCircle" then
+		teleportTo(playerTycoonInfo.interactiveCircles.SpellSchoolCircle)
+	elseif teleport == "UpgradeCircle" then
+		teleportTo(playerTycoonInfo.interactiveCircles.UpgradeCircle)
+	end
+end
+
 function doAutoFarm()
 	teleportTo(playerTycoonInfo.interactiveCircles.PickupCircle)
 
@@ -261,6 +324,9 @@ function doAutoFarm()
 
 	task.wait(1)
 	teleportTo(playerTycoonInfo.interactiveCircles.SellCircle)
+
+	task.wait(1)
+	teleportTo(playerTycoonInfo.enemyLocation)
 
 	task.wait(settings.autoFarm.interval)
 end
