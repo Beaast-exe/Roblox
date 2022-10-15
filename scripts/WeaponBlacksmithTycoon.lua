@@ -1,4 +1,5 @@
 -- // VARIABLES \\ --
+local Workspace = game:GetService("Workspace")
 local RunService = game:GetService("RunService")
 local VirtualInputManager = game:GetService("VirtualInputManager")
 local localPlayer = game:GetService("Players").LocalPlayer
@@ -6,6 +7,14 @@ local Mouse = localPlayer:GetMouse()
 
 -- // FEATURE DEFINING \\ --
 local settings = {
+	autoSwing = {
+		enabled = false,
+		interval = 0.6
+	},
+	autoFarm = {
+		enabled = false,
+		interval = 5
+	},
 	autoClick = {
 		enabled = false,
 		x = 0,
@@ -27,6 +36,7 @@ local Window = OrionLib:MakeWindow({
 	IntroText = "Beaast Hub"
 })
 
+-- // AUTOS TAB \\ --
 local Main = Window:MakeTab({
 	Name = "Main",
 	Icon = "rbxassetid://4483345998",
@@ -37,6 +47,38 @@ local Autos = Main:AddSection({
 	Name = "Autos"
 })
 
+local farm = Autos:AddToggle({
+	Name = "Enable Auto Farm",
+	Default = false,
+	Callback = function(bool)
+		settings.autoFarm.enabled = bool
+	end
+})
+
+Autos:AddBind({
+	Name = "Toggle Auto Farm BIND",
+	Default = Enum.KeyCode.R,
+	Hold = false,
+	Callback = function()
+		if settings.autoFarm.enabled then
+			settings.autoFarm.enabled = false
+			farm:Set(false)
+		else
+			settings.autoFarm.enabled = true
+			farm:Set(true)
+		end
+	end
+})
+
+Autos:AddToggle({
+	Name = "Enable Auto Swing",
+	Default = false,
+	Callback = function(bool)
+		settings.autoSwing.enabled = bool
+	end
+})
+
+-- // CLICKER TAB \\ --
 local Autoclicker = Window:MakeTab({
 	Name = "Auto Clicker",
 	Icon = "rbxassetid://4483345998",
@@ -69,7 +111,6 @@ AUTOCLICK:AddBind({
 
 		if settings.autoClick.enabled then
 			settings.autoClick.enabled = false
-			doAutoClick()
 		else
 			settings.autoClick.enabled = true
 			doAutoClick()
@@ -137,11 +178,11 @@ CREDITS:AddButton({
 
 CREDITS:AddLabel("Created by: Beaast#6458")
 
-local UI = Misc:AddSection({
+local UIOptions = Misc:AddSection({
 	Name = "UI Options"
 })
 
-UI:AddBind({
+UIOptions:AddBind({
 	Name = "Toggle UI",
 	Default = Enum.KeyCode.RightControl,
 	Hold = false,
@@ -153,7 +194,7 @@ UI:AddBind({
 	end
 })
 
-UI:AddButton({
+UIOptions:AddButton({
 	Name = "Destroy UI",
 	Callback = function()
 		OrionLib:Destroy()
@@ -161,16 +202,80 @@ UI:AddButton({
 })
 
 -- // CHEAT FUNCTIONS \\ --
+function isPlayerAlive()
+	local humanoid = localPlayer.Character and localPlayer.Character.Humanoid
+	local root = localPlayer.Character and localPlayer.Character:WaitForChild("HumanoidRootPart", 5)
+
+	if root and (humanoid and humanoid.Health > 0) then
+		return true
+	end
+end
+
+function teleportTo(part)
+	if part and isPlayerAlive() then
+		localPlayer.Character.PrimaryPart:PivotTo(part)
+	end
+end
 
 function doAutoClick()
-	spawn(function()
+	task.spawn(function()
 		while settings.autoClick.enabled do
 			VirtualInputManager:SendMouseButtonEvent(settings.autoClick.x, settings.autoClick.y, 0, true, game, 1)
 			VirtualInputManager:SendMouseButtonEvent(settings.autoClick.x, settings.autoClick.y, 0, false, game, 1)
-			wait(settings.autoClick.interval)
+			task.wait(settings.autoClick.interval)
 		end
 	end)
 end
+
+function getPlayerTycoon()
+	local tycoon = Workspace:WaitForChild("Tycoons")[getTycoonName()]
+	return tycoon
+end
+
+function getTycoonName()
+	for _, tycoon in next, Workspace:WaitForChild("Tycoons"):GetChildren() do
+		if tycoon.Configuration.Owner.Value == localPlayer then
+			return tycoon.Name
+		end
+	end
+end
+
+local playerTycoonInfo = {
+	spawn = getPlayerTycoon().Spawn.CFrame,
+	interactiveCircles = {
+		BanshieHouse = getPlayerTycoon().InteractiveCircles.BanshieHouse.CFrame,
+		PickupCircle = getPlayerTycoon().InteractiveCircles.PickupCircle.CFrame,
+		RebirthCircle = getPlayerTycoon().InteractiveCircles.RebirthCircle.CFrame,
+		SellCircle = getPlayerTycoon().InteractiveCircles.SellCircle.CFrame,
+		SpellSchoolCircle = getPlayerTycoon().InteractiveCircles.SpellSchoolCircle.CFrame,
+		UpgradeCircle = getPlayerTycoon().InteractiveCircles.UpgradeCircle.CFrame
+	}
+
+}
+
+function doAutoFarm()
+	teleportTo(playerTycoonInfo.interactiveCircles.PickupCircle)
+
+	task.wait(0.2)
+	game:GetService("ReplicatedStorage").Remotes.PickupWeapons:InvokeServer("pickup")
+
+	task.wait(1)
+	teleportTo(playerTycoonInfo.interactiveCircles.SellCircle)
+
+	task.wait(settings.autoFarm.interval)
+end
+
+task.spawn(function()
+	while task.wait(0.1) do
+		if settings.autoSwing.enabled then
+			game:GetService("Workspace"):FindFirstChild(localPlayer.Name).Weapon.WeaponActivated:FireServer(0.6)
+		end
+
+		if settings.autoFarm.enabled then
+			doAutoFarm()
+		end
+	end
+end)
 
 RunService.Stepped:Connect(function()
 	if localPlayer.Character then

@@ -332,8 +332,6 @@ function levelPosition()
 	end
 end
 
-
-
 function lastLevelPosition()
 	if isPlayerAlive() and canLevelUp() then
 		for _, level in next, Workspace:WaitForChild("Plots")[getPlot()].Buttons.LastLevel:GetChildren() do
