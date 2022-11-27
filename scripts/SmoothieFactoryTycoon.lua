@@ -288,7 +288,7 @@ end)
 
 function doAutoBuy()
 	task.spawn(function()
-		while settings.autoBuy and task.wait(5) do
+		while settings.autoBuy and task.wait(0.5) do
 			for i, v in pairs(plot.PurchaseButtons:GetDescendants()) do
 				if v.Parent.Name ~= "Rainbow Upgrader" and v.Parent.Name ~= "Rainbow Upgrader (Basement)" and v.Parent.Name ~= "Toggle Door Gamepass" and v.Parent.Name ~= "Gold Blender" and v.Parent.Name ~= "Gold Dropper 1" and v.Parent.Name ~= "Gold Dropper 2" and v.Parent.Name ~= "Gold Dropper 3" then
 					if v.Name == "Button" and v:FindFirstChild("TouchInterest") then
