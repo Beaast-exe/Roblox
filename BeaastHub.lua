@@ -20,4 +20,6 @@ elseif placeID == 9264596435 then
 -- // WEAPON BLACKSMITH TYCOON \\ --
 elseif placeID == 10821263959 then
 	loadstring(game:HttpGet("https://raw.githubusercontent.com/Beaast-exe/Roblox/master/scripts/WeaponBlacksmithTycoon.lua"))()
+elseif placeID == 10905034443 then
+	loadstring(game:HttpGet("https://raw.githubusercontent.com/Beaast-exe/Roblox/master/scripts/SmoothieFactoryTycoon.lua"))()
 end
