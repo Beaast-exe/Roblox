@@ -243,11 +243,13 @@ end
 
 function doAutoCrate(crate)
 	task.spawn(function()
-		while settings.autoCrate and task.wait(10) do
-			TeleportTo(crate.Button.Button.CFrame + Vector3.new(-1, 2, 2))
-			task.wait(0.2)
-			fireproximityprompt(crate.Button.Button.Attachment.OpenDoorPrompt)
-			task.wait(0.3)
+		while settings.autoCrate and task.wait(0.1) do
+			if crate.Button.Button:FindFirstChild("Arrow") then
+				TeleportTo(crate.Button.Button.CFrame + Vector3.new(-1, 2, 2))
+				task.wait(0.2)
+				fireproximityprompt(crate.Button.Button.Attachment.OpenDoorPrompt)
+				task.wait(0.3)
+			end
 		end
 	end)
 end
