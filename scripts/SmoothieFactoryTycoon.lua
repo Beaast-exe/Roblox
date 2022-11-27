@@ -56,12 +56,27 @@ Updates:AddButton({
 					Time = 5
 				})
 
-				Autos:AddToggle({
+				local blend = Autos:AddToggle({
 					Name = "Auto Blend",
 					Default = false,
 					Callback = function(value)
 						settings.autoBlend = value
 						doAutoBlend()
+					end
+				})
+
+				Autos:AddBind({
+					Name = "Toggle Auto Blend BIND",
+					Default = Enum.KeyCode.R,
+					Hold = false,
+					Callback = function()
+						if settings.autoBlend then
+							settings.autoBlend = false
+							blend:Set(false)
+						else
+							settings.autoBlend = true
+							blend:Set(true)
+						end
 					end
 				})
 				
