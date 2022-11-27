@@ -269,7 +269,6 @@ function doAutoBlend()
 	task.spawn(function()
 		while settings.autoBlend and task.wait(5) do
 			for i, v in pairs(blenders) do
-				--print(v.Name)
 				TeleportTo(v.Button.CFrame + Vector3.new(-1, 2, 2))
 				task.wait(0.2)
 				fireproximityprompt(v.Button.Attachment.ActivateBlender)
@@ -279,14 +278,22 @@ function doAutoBlend()
 	end)
 end
 
+task.spawn(function()
+	while settings.autoBlend and task.wait(10) do
+		updateBlenders()
+	end
+end)
+
 function doAutoBuy()
 	task.spawn(function()
 		while settings.autoBuy and task.wait(5) do
 			for i, v in pairs(plot.PurchaseButtons:GetDescendants()) do
-				if v.name == "Button" and v:FindFirstChild("TouchInterest") and v.Parent.Name ~= "Toggle Door Gamepass" and v.Parent.Name ~= "Gold Blender" then
-					firetouchinterest(v, localPlayer.Character.HumanoidRootPart, 0)
-					task.wait(0.2)
-					firetouchinterest(v, localPlayer.Character.HumanoidRootPart, 1)
+				if v.Parent.Name ~= "Rainbow Upgrader" and v.Parent.Name ~= "Rainbow Upgrader (Basement)" and v.Parent.Name ~= "Gold Blender" and v.Parent.Name ~= "Gold Dropper 1" and v.Parent.Name ~= "Gold Dropper 2" and v.Parent.Name ~= "Gold Dropper 3" then
+					if v.Name == "Button" and v:FindFirstChild("TouchInterest") then
+						firetouchinterest(v, localPlayer.Character.HumanoidRootPart, 0)
+						task.wait(0.2)
+						firetouchinterest(v, localPlayer.Character.HumanoidRootPart, 1)
+					end
 				end
 			end
 		end
