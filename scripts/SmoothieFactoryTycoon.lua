@@ -43,11 +43,14 @@ local Autos = Main:AddSection({
 
 local plot
 local blenders = {}
+local purchases = {}
+local upgrades = {}
+
 Updates:AddButton({
 	Name = "Atualizar Plot",
 	Callback = function()
 		for i, v in pairs(Workspace.Tycoons:GetDescendants()) do
-			if (v.Name == "Owner" and v.Value == localPlayer) then
+			if v.Name == "Owner" and v.Value == localPlayer then
 				plot = v.Parent
 				OrionLib:MakeNotification({
 					Name = "Plot atualizado com sucesso",
@@ -245,7 +248,7 @@ function doAutoCrate(crate)
 	task.spawn(function()
 		while settings.autoCrate and task.wait(0.1) do
 			if crate.Button.Button:FindFirstChild("Arrow") then
-				TeleportTo(crate.Button.Button.CFrame + Vector3.new(-1, 2, 2))
+				TeleportTo(crate.Button.Button.CFrame)
 				task.wait(0.2)
 				fireproximityprompt(crate.Button.Button.Attachment.OpenDoorPrompt)
 				task.wait(0.3)
@@ -264,7 +267,7 @@ function doAutoJar()
 
 			for i, v in pairs(jarDoors) do
 				if v.Button.Button.Attachment.Cooldown.TextLabel.Text == "0" then
-					TeleportTo(v.Button.Button.CFrame + Vector3.new(-1, 2, 2))
+					TeleportTo(v.Button.Button.CFrame)
 					task.wait(0.2)
 					fireproximityprompt(v.Button.Button.Attachment.OpenDoorPrompt)
 					task.wait(0.3)
@@ -284,12 +287,15 @@ end
 
 function doAutoBlend()
 	task.spawn(function()
-		while settings.autoBlend and task.wait(5) do
+		while settings.autoBlend and task.wait(1) do
 			for i, v in pairs(blenders) do
-				TeleportTo(v.Button.CFrame + Vector3.new(-1, 2, 2))
-				task.wait(0.2)
-				fireproximityprompt(v.Button.Attachment.ActivateBlender)
-				task.wait(0.8)
+				--TeleportTo(v.Button.CFrame + Vector3.new(-1, 2, 2))
+				if v.Button:FindFirstChild("Arrow") then
+					TeleportTo(v.Button.CFrame)
+					task.wait(0.2)
+					fireproximityprompt(v.Button.Attachment.ActivateBlender)
+					task.wait(0.8)
+				end
 			end
 
 			updateBlenders()
@@ -306,18 +312,42 @@ end)
 function doAutoBuy()
 	task.spawn(function()
 		while settings.autoBuy and task.wait(0.5) do
-			for i, v in pairs(plot.PurchaseButtons:GetDescendants()) do
-				if v.Parent.Name ~= "Rainbow Upgrader" and v.Parent.Name ~= "Rainbow Upgrader (Basement)" and v.Parent.Name ~= "Toggle Door Gamepass" and v.Parent.Name ~= "Gold Blender" and v.Parent.Name ~= "Gold Dropper 1" and v.Parent.Name ~= "Gold Dropper 2" and v.Parent.Name ~= "Gold Dropper 3" then
-					if v.Name == "Button" and v:FindFirstChild("TouchInterest") then
-						firetouchinterest(v, localPlayer.Character.HumanoidRootPart, 0)
-						task.wait(0.2)
-						firetouchinterest(v, localPlayer.Character.HumanoidRootPart, 1)
-					end
-				end
+			doAutoUpgrades()
+			for i, v in pairs(purchases) do
+				firetouchinterest(localPlayer.Character.Head, v.Button, 0)
+				task.wait(0.2)
+				firetouchinterest(localPlayer.Character.Head, v.Button, 1)
 			end
 		end
 	end)
 end
+
+function doAutoUpgrades()
+	task.spawn(function()
+		while settings.autoBuy and task.wait(0.5) do
+			for i, v in pairs(upgrades) do
+				firetouchinterest(localPlayer.Character.Head, v.Button, 0)
+				task.wait(0.2)
+				firetouchinterest(localPlayer.Character.Head, v.Button, 1)
+			end
+		end
+	end)
+end
+
+task.spawn(function()
+	while true and task.wait(0.5) do
+		if plot ~= nil then
+			updatePurchases()
+			updateUpgrades()
+		end
+
+		for i, v in pairs(Workspace.Tycoons:GetChildren()) do
+			if (v.UpgradeButtons:FindFirstChild("Model names are constants! (DO NOT CHANGE THEM)")) then
+				v.UpgradeButtons["Model names are constants! (DO NOT CHANGE THEM)"]:Destroy()
+			end
+		end
+	end
+end)
 
 function doAutoObby()
 	task.spawn(function()
@@ -352,13 +382,92 @@ function updateBlenders()
 	local purchases = plot.Purchases
 	blenders = {}
 
-	print("===========================================================")
 	for i, v in pairs(purchases:GetChildren()) do
 		if string.find(v.Name, "Blender") then
 			table.insert(blenders, v)
-			print(v.Name)
 		end
 	end
+end
+
+function updatePurchases()
+	local purchaseButtons = plot.PurchaseButtons
+	local playerMoney = game:GetService("Players").LocalPlayer.leaderstats.Money.Value
+	purchases = {}
+
+	for i, v in pairs(purchaseButtons:GetChildren()) do
+		if string.find(v.Name, "Blender") or string.find(v.Name, "Dropper") then
+			if not string.find(v.Button.PurchaseBillboard.Price.Text, "Rebirth") then
+				if not string.find(v.Name, "Gold") then
+					local price = getRealNumber(v.Button.PurchaseBillboard.Price.Text)
+					local playerMoneyReal = getRealNumber(playerMoney)
+
+					if playerMoneyReal > price then
+						table.insert(purchases, v)
+					end
+				end
+			end
+		end
+	end
+end
+
+function updateUpgrades()
+	local upgradeButtons = plot.UpgradeButtons
+	local playerMoney = game:GetService("Players").LocalPlayer.leaderstats.Money.Value
+	upgrades = {}
+
+	for i, v in pairs(upgradeButtons:GetChildren()) do
+		if not string.find(v.Button.PurchaseBillboard.Price.Text, "Rebirth") then
+			if v:FindFirstChild("Button") then
+				local price = getRealNumber(v.Button.PurchaseBillboard.Price.Text)
+				local playerMoneyReal = getRealNumber(playerMoney)
+
+				if playerMoneyReal > price then
+					table.insert(upgrades, v)
+				end
+			end
+		end
+	end
+end
+
+function getRealNumber(number)
+	local num = string.gsub(number, "%$", "")
+
+	if string.find(num, "%.") then
+		num = string.gsub(num, "%.", "")
+		if string.find(num, "K") then
+			num = string.gsub(num, "K", "0")
+		elseif string.find(num, "M") then
+			num = string.gsub(num, "M", "0000")
+		elseif string.find(num, "B") then
+			num = string.gsub(num, "B", "0000000")
+		elseif string.find(num, "T") then
+			num = string.gsub(num, "T", "0000000000")
+		elseif string.find(num, "Qd") then
+			num = string.gsub(num, "Qd", "0000000000000")
+		elseif string.find(num, "Qn") then
+			num = string.gsub(num, "Qn", "0000000000000000")
+		elseif string.find(num, "Sx") then
+			num = string.gsub(num, "Sx", "0000000000000000000")
+		end
+	else
+		if string.find(num, "K") then
+			num = string.gsub(num, "K", "000")
+		elseif string.find(num, "M") then
+			num = string.gsub(num, "M", "000000")
+		elseif string.find(num, "B") then
+			num = string.gsub(num, "B", "000000000")
+		elseif string.find(num, "T") then
+			num = string.gsub(num, "T", "000000000000")
+		elseif string.find(num, "Qd") then
+			num = string.gsub(num, "Qd", "000000000000000")
+		elseif string.find(num, "Qn") then
+			num = string.gsub(num, "Qn", "000000000000000000")
+		elseif string.find(num, "Sx") then
+			num = string.gsub(num, "Sx", "000000000000000000000")
+		end
+	end
+
+	return tonumber(num)
 end
 
 -- // INITIALIZE THE SCRIPT \\ --
