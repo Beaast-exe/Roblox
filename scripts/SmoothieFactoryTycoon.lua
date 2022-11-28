@@ -289,12 +289,25 @@ function doAutoBlend()
 	task.spawn(function()
 		while settings.autoBlend and task.wait(1) do
 			for i, v in pairs(blenders) do
-				--TeleportTo(v.Button.CFrame + Vector3.new(-1, 2, 2))
+				--[[
 				if v.Button:FindFirstChild("Arrow") then
 					TeleportTo(v.Button.CFrame)
-					task.wait(0.2)
+					task.wait(0.5)
 					fireproximityprompt(v.Button.Attachment.ActivateBlender)
-					task.wait(0.8)
+					task.wait(1)
+				end
+				]]
+				local droppers = string.gsub(v.Name, "Blender", "Droppers")
+				local droppersChildren = plot.Purchases[droppers]:GetChildren()
+				local droppersCount = #droppersChildren
+				local fruitsChildren = v.Fruits:GetChildren()
+				local fruitsCount = #fruitsChildren
+
+				if fruitsCount == droppersCount * 5 then
+					TeleportTo(v.Button.CFrame)
+					task.wait(0.5)
+					fireproximityprompt(v.Button.Attachment.ActivateBlender)
+					task.wait(1)
 				end
 			end
 
