@@ -25,5 +25,5 @@ elseif placeID == 10905034443 then
 	loadstring(game:HttpGet("https://raw.githubusercontent.com/Beaast-exe/Roblox/master/scripts/SmoothieFactoryTycoon.lua"))()
 -- // ANIME ADVENTURES \\ --
 elseif placeID == 8304191830 or placeID == 8349889591 then
-	loadstring(game:HttpGet(""))
+	loadstring(game:HttpGet("https://raw.githubusercontent.com/Beaast-exe/Roblox/master/scripts/AnimeAdventures/AnimeAdventures.lua"))
 end
