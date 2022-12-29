@@ -13,14 +13,14 @@ local utils = {
         Notify = loadstring(NotificationFrame.NotifScript.Source)()
     end,
     warn = function(method, ...)
-        Notify:New("Cranium Debug - "..method, ...)
+        Notify:New("Beaast Debug - "..method, ...)
     end,
     newWindow = loadstring(game:HttpGet("https://raw.githubusercontent.com/bloodball/-back-ups-for-libs/main/sol"))
 }
 
 function loadFileSystem()
-    if not isfolder("Cranium") then
-        makefolder("Cranium")
+    if not isfolder("Beaast Hub") then
+        makefolder("Beaast Hub")
     end
 end
 
