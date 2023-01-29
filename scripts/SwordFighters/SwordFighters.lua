@@ -64,7 +64,7 @@ Toggles["autoRelicPower"]:OnChanged(function()
 	settings.autoRelicPower = Toggles["autoRelicPower"].Value
 end)
 
-AutoRelics:AddButton('Select Relic Power', function()
+AutoRelics:AddButton('Select Power Relic', function()
 	if getEquippedRelic() == "No Relic" then
 		Library:Notify("Equip a relic before doing this")
 	else
@@ -78,12 +78,62 @@ Toggles["autoRelicDamage"]:OnChanged(function()
 	settings.autoRelicDamage = Toggles["autoRelicDamage"].Value
 end)
 
-AutoRelics:AddButton('Select Relic Damage', function()
+AutoRelics:AddButton('Select Damage Relic', function()
 	if getEquippedRelic() == "No Relic" then
 		Library:Notify("Equip a relic before doing this")
 	else
 		Library:Notify("Equipped Relic: " .. getEquippedRelic(), 5)
 		settings.relicDamage = getEquippedRelic()
+	end
+end)
+
+AutoRelics:AddButton('Equip Power Relic', function()
+	local equippedRelic = tostring(getEquippedRelic())
+	local RelicEquipRemote = game:GetService("ReplicatedStorage").Packages.Knit.Services.RelicInvService.RF.EquipRelic
+
+
+	if settings.relicDamage == "No Relic" then
+		Library:Notify("Select a relic before doing this")
+	else
+		if equippedRelic == "No Relic" then
+			local relicPower = { [1] = settings.relicPower }
+
+			RelicEquipRemote:InvokeServer(unpack(relicPower))
+			Library:Notify("Equipped Relic: " .. settings.relicPower, 5)
+		else
+			local relicPower = { [1] = settings.relicPower }
+			local relicEquipped = { [1] = equippedRelic }
+
+			RelicEquipRemote:InvokeServer(unpack(relicEquipped))
+			task.wait(1)
+			RelicEquipRemote:InvokeServer(unpack(relicPower))
+			Library:Notify("Equipped Relic: " .. settings.relicPower, 5)
+		end
+	end
+end)
+
+AutoRelics:AddButton('Equip Damage Relic', function()
+	local equippedRelic = tostring(getEquippedRelic())
+	local RelicEquipRemote = game:GetService("ReplicatedStorage").Packages.Knit.Services.RelicInvService.RF.EquipRelic
+
+
+	if settings.relicDamage == "No Relic" then
+		Library:Notify("Select a relic before doing this")
+	else
+		if equippedRelic == "No Relic" then
+			local relicDamage = { [1] = settings.relicDamage }
+
+			RelicEquipRemote:InvokeServer(unpack(relicDamage))
+			Library:Notify("Equipped Relic: " .. settings.relicDamage, 5)
+		else
+			local relicDamage = { [1] = settings.relicDamage }
+			local relicEquipped = { [1] = equippedRelic }
+
+			RelicEquipRemote:InvokeServer(unpack(relicEquipped))
+			task.wait(1)
+			RelicEquipRemote:InvokeServer(unpack(relicDamage))
+			Library:Notify("Equipped Relic: " .. settings.relicDamage, 5)
+		end
 	end
 end)
 
