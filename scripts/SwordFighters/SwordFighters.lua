@@ -290,23 +290,39 @@ local function getEquippedRelic()
 	return relicFound
 end
 
+local function getRelicName(relic: string)
+	for i, v in next, PlayerInv:GetDescendants() do
+		if v.Parent == PlayerInv and v.Name == relic then
+			return v.TextLabel1.Text
+		end
+	end
+end
+
 Toggles["autoRelicPower"]:OnChanged(function()
 	settings.autoRelicPower = Toggles["autoRelicPower"].Value
 	SaveConfig()
 end)
 
+local equippedPowerRelicForLabel = settings.relicPower
+if equippedPowerRelicForLabel ~= "No Relic" then equippedPowerRelicForLabel = getRelicName(settings.relicPower) end
+local equippedDamageRelicForLabel = settings.relicDamage
+if equippedDamageRelicForLabel ~= "No Relic" then equippedDamageRelicForLabel = getRelicName(settings.relicDamage) end
+
+local relicPowerLabel = AutoRelics:AddLabel("Power Relic: " .. equippedPowerRelicForLabel, true)
+local relicDamageLabel = AutoRelics:AddLabel("Damage Relic: " .. equippedDamageRelicForLabel, true)
+
 AutoRelics:AddButton('Select Power Relic', function()
 	if getEquippedRelic() == "No Relic" then
 		Library:Notify("Equip a relic before doing this")
 	else
-		Library:Notify("Equipped Relic: " .. getEquippedRelic(), 5)
+		Library:Notify("Equipped Relic: " .. getRelicName(getEquippedRelic()), 5)
 		settings.relicPower = getEquippedRelic()
+		relicPowerLabel:SetText("Power Relic: " .. getRelicName(settings.relicPower))
 		SaveConfig()
 	end
 end)
 
 Toggles["autoRelicDamage"]:OnChanged(function()
-	--print(Toggles["autoRelicDamage"].Value)
 	settings.autoRelicDamage = Toggles["autoRelicDamage"].Value
 	SaveConfig()
 end)
@@ -315,8 +331,9 @@ AutoRelics:AddButton('Select Damage Relic', function()
 	if getEquippedRelic() == "No Relic" then
 		Library:Notify("Equip a relic before doing this")
 	else
-		Library:Notify("Equipped Relic: " .. getEquippedRelic(), 5)
+		Library:Notify("Equipped Relic: " .. getRelicName(getEquippedRelic()), 5)
 		settings.relicDamage = getEquippedRelic()
+		relicDamageLabel:SetText("Damage Relic: " .. getRelicName(settings.relicDamage))
 		SaveConfig()
 	end
 end)
@@ -332,7 +349,7 @@ AutoRelics:AddButton('Equip Power Relic', function()
 			local relicPower = { [1] = settings.relicPower }
 
 			RelicEquipRemote:InvokeServer(unpack(relicPower))
-			Library:Notify("Equipped Relic: " .. settings.relicPower, 5)
+			Library:Notify("Equipped Relic: " .. getRelicName(settings.relicPower), 5)
 		else
 			local relicPower = { [1] = settings.relicPower }
 			local relicEquipped = { [1] = equippedRelic }
@@ -340,7 +357,7 @@ AutoRelics:AddButton('Equip Power Relic', function()
 			RelicEquipRemote:InvokeServer(unpack(relicEquipped))
 			task.wait(1)
 			RelicEquipRemote:InvokeServer(unpack(relicPower))
-			Library:Notify("Equipped Relic: " .. settings.relicPower, 5)
+			Library:Notify("Equipped Relic: " .. getRelicName(settings.relicPower), 5)
 		end
 	end
 end)
@@ -357,7 +374,7 @@ AutoRelics:AddButton('Equip Damage Relic', function()
 			local relicDamage = { [1] = settings.relicDamage }
 
 			RelicEquipRemote:InvokeServer(unpack(relicDamage))
-			Library:Notify("Equipped Relic: " .. settings.relicDamage, 5)
+			Library:Notify("Equipped Relic: " .. getRelicName(settings.relicDamage), 5)
 		else
 			local relicDamage = { [1] = settings.relicDamage }
 			local relicEquipped = { [1] = equippedRelic }
@@ -365,7 +382,7 @@ AutoRelics:AddButton('Equip Damage Relic', function()
 			RelicEquipRemote:InvokeServer(unpack(relicEquipped))
 			task.wait(1)
 			RelicEquipRemote:InvokeServer(unpack(relicDamage))
-			Library:Notify("Equipped Relic: " .. settings.relicDamage, 5)
+			Library:Notify("Equipped Relic: " .. getRelicName(settings.relicDamage), 5)
 		end
 	end
 end)
