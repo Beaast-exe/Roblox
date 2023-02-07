@@ -217,8 +217,8 @@ local AUTOFARM_FUNCTIONS = {
     end,
     
     Get_Specific_Closest = function()
-        local Closest = nil;
-        local Distance = 9e9;
+        local Closest = nil
+        local Distance = 9e9
         
         for a, b in next, Npcs:GetChildren() do
             if b:IsA("Model") then
