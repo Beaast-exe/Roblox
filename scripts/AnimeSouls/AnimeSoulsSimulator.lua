@@ -483,7 +483,7 @@ local MainTab = Tabs["Main Tab"]:AddLeftGroupbox("Farming")
 local EggMainTab = Tabs["Main Tab"]:AddRightGroupbox("Eggs")
 local MiscTab = Tabs["Main Tab"]:AddRightGroupbox("Miscellaneous")
 
-local HitsUntilKill = MainTab:AddLabel("Hits Until Kill: Not Toggled")
+--local HitsUntilKill = MainTab:AddLabel("Hits Until Kill: Not Toggled")
 
 MainTab:AddToggle("Auto Hit", {
 	Text = "Auto Swing",
@@ -574,7 +574,7 @@ Toggles["Auto Quest"]:OnChanged(function()
 
                 if ClosestEnemy then
                     QuestLabel:SetText(string.format("[Killing: %s] %s/%s kills", ClosestEnemy.Name, Kills, MaxKills));
-                    HitsUntilKill:SetText(string.format("Hits Until Kill: %s", GetHitsUntilKill(ClosestEnemy)));
+                    --HitsUntilKill:SetText(string.format("Hits Until Kill: %s", GetHitsUntilKill(ClosestEnemy)));
 
                     if ClosestEnemy.Parent.Name ~= CurrentIsland then
                         -- local Teleporter, Position = GetClosestTeleporter();
@@ -636,7 +636,7 @@ Toggles["Auto Attack Closest"]:OnChanged(function()
                 local Distance = (Entity.character.HumanoidRootPart.Position - EnemyPosition).Magnitude;
 
                 if Enemy and Distance <= 5 then
-                    HitsUntilKill:SetText(string.format("Hits Until Kill: %s", GetHitsUntilKill(Enemy)));
+                    --HitsUntilKill:SetText(string.format("Hits Until Kill: %s", GetHitsUntilKill(Enemy)));
                     Client.Server:FireServer({
                         "Hit",
                         Enemy
