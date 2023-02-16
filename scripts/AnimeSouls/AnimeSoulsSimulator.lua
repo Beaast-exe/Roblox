@@ -352,10 +352,9 @@ Webhook:AddButton('Test Webhook', function()
 end)
 
 coroutine.resume(coroutine.create(function()
-	while task.wait(settings.webhookDelay * 60) do
-		if settings.enableWebhookInterval then
-			sendWebhook()
-		end
+	while settings.enableWebhookInterval == true do
+		task.wait(settings.webhookDelay * 60)
+		sendWebhook()
 	end
 end))
 
