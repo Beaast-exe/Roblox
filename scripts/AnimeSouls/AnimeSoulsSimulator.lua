@@ -2,6 +2,7 @@ local StartTick = tick()
 repeat task.wait() until game:IsLoaded()
 
 local HttpService = game:GetService("HttpService")
+local request = http_request or request or HttpPost or syn.request or http.request
 ------
 local repo = 'https://raw.githubusercontent.com/wally-rblx/LinoriaLib/main/'
 local Library = loadstring(game:HttpGet(repo .. 'Library.lua'))()
@@ -20,7 +21,11 @@ local defaultSettings = {
 	hideName = false,
 	watermark = false,
 	teleportGamepass = false,
-	noRobuxPrompt = false
+	noRobuxPrompt = false,
+	webhookLink = "Webhook Link",
+	webhookDelay = 5,
+	webhookMentionId = "Mention ID",
+	enableWebhookInterval = false
 }
 
 if not pcall(function() readfile(saveFile) end) then writefile(saveFile, HttpService:JSONEncode(defaultSettings)) end
@@ -166,6 +171,191 @@ coroutine.resume(coroutine.create(function()
 		COREGUI.PurchasePrompt.Enabled = false
 	elseif settings.noRobuxPrompt == false then
 		COREGUI.PurchasePrompt.Enabled = true
+	end
+end))
+
+local Webhook = Tabs["Main"]:AddRightGroupbox('Webhook')
+
+Webhook:AddToggle('enableWebhookInterval', {
+	Text = "Enable Webhook Interval",
+	Default = settings.enableWebhookInterval,
+	Tooltip = "Enable auto webhook in the interval below"
+})
+
+Toggles["enableWebhookInterval"]:OnChanged(function()
+	settings.enableWebhookInterval = Toggles["enableWebhookInterval"].Value
+	SaveConfig()
+end)
+
+Webhook:AddInput('webhookLink', {
+    Default = settings.webhookLink,
+    Numeric = false, -- true / false, only allows numbers
+    Finished = true, -- true / false, only calls callback when you press enter
+
+    Text = 'Webhook Link',
+    Tooltip = 'Insert Webhook Link (Press ENTER)', -- Information shown when you hover over the textbox
+
+    Placeholder = 'Insert Webhook Link (Press ENTER)', -- placeholder text when the box is empty
+    -- MaxLength is also an option which is the max length of the text
+})
+
+Options["webhookLink"]:OnChanged(function()
+	settings.webhookLink = Options["webhookLink"].Value
+	SaveConfig()
+end)
+
+Webhook:AddInput('webhookDelay', {
+    Default = settings.webhookDelay,
+    Numeric = true, -- true / false, only allows numbers
+    Finished = true, -- true / false, only calls callback when you press enter
+
+    Text = 'Webhook Delay',
+    Tooltip = 'Delay in minutes between webhooks', -- Information shown when you hover over the textbox
+
+    Placeholder = 'Delay (minutes)', -- placeholder text when the box is empty
+    -- MaxLength is also an option which is the max length of the text
+})
+
+Options["webhookDelay"]:OnChanged(function()
+	settings.webhookDelay = Options["webhookDelay"].Value
+	SaveConfig()
+end)
+
+Webhook:AddInput('webhookMentionId', {
+    Default = settings.webhookMentionId,
+    Numeric = true, -- true / false, only allows numbers
+    Finished = true, -- true / false, only calls callback when you press enter
+
+    Text = 'Webhook Mention ID',
+    Tooltip = 'User ID to mention when sending webhook', -- Information shown when you hover over the textbox
+
+    Placeholder = 'Mention ID', -- placeholder text when the box is empty
+    -- MaxLength is also an option which is the max length of the text
+})
+
+Options["webhookMentionId"]:OnChanged(function()
+	settings.webhookMentionId = Options["webhookMentionId"].Value
+	SaveConfig()
+end)
+
+local function runeCodeToString(rune_code, amount)
+	local RuneTranslated = ""
+	local RunesTranslations = {
+		rune_yellow = "🟨 **Yellow Rune:** `",
+		rune_pink = "✨ **Pink Rune:** `",
+		rune_green = "🟩 **Green Rune:** `",
+		rune_blue = "🟦 **Blue Rune:** `",
+		rune_orange = "🟧 **Orange Rune:** `",
+		rune_purple = "🟪 **Purple Rune:** `",
+		rune_red = "🟥 **Red Rune:** `"
+	}
+
+	for key, Translation in next, RunesTranslations do
+		if rune_code == key then
+			RuneTranslated = tostring(Translation .. amount .. "`")
+		end
+	end
+
+	return RuneTranslated
+end
+
+local function getMention(mention)
+	local translatedMention = ""
+	
+	if mention == "Mention ID" then
+		translatedMention = ""
+	else
+		translatedMention = "<@" .. mention .. ">"
+	end
+
+	return translatedMention
+end
+
+local function sendWebhook()
+	local url = tostring(settings.webhookLink)
+	if url == "Webhook Link" then return end
+
+	local mention = getMention(tostring(settings.webhookMentionId))
+
+	local playerThumbnails = request({
+		Url = "https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds=" .. LocalPlayer.UserId .. "&size=48x48&format=Png&isCircular=false",
+		Method = "GET"
+	}).Body
+	local imageUrl = HttpService:JSONDecode(playerThumbnails).data[1].imageUrl
+
+	local PlayerGui = game:GetService("Players").LocalPlayer.PlayerGui
+	local Energy = PlayerGui.SideUI.Displays.EnergyDisplay.Shadow.Amount.Text
+	local Souls = PlayerGui.SideUI.Displays.SoulsDisplay.Shadow.Amount.Text
+
+	local Potions = PlayerGui.CenterUI.Potions.Main.Scroll
+	local EnergyPotions = tostring(string.match(Potions.energy.button.title.Text, "%d+"))
+	local SoulsPotions = tostring(string.match(Potions.souls.button.title.Text, "%d+"))
+	local DamagePotions = tostring(string.match(Potions.damage.button.title.Text, "%d+"))
+	local LuckyPotions = tostring(string.match(Potions.lucky.button.title.Text, "%d+"))
+
+	local Backpack = PlayerGui.CenterUI.Backpack.Main.Scroll
+
+	local runes = {}
+	
+	for i, v in next, Backpack:GetChildren() do
+		if v.Name ~= "UIGridLayout" and v.Name ~= "UIPadding" and v.Name ~= "template" then
+			local item = v:GetChildren()[1]
+			if #item:FindFirstChild("shadow"):FindFirstChild("view"):FindFirstChild("model"):GetChildren() < 1 then
+				local textToInsert = runeCodeToString(item.Name, tostring(string.match(item._amount.Text, "%d+")))
+				table.insert(runes, textToInsert)
+			end
+		end
+	end
+
+	local data = {
+		["content"] = mention,
+		["username"] = "Beaast Hub | " .. LocalPlayer.Name,
+		["avatar_url"] = imageUrl,
+		["embeds"] = {
+			{
+				["fields"] = {
+					{
+						["name"] = "Currencies:",
+						["value"] = "⚡ `" .. Energy .. "`\n👻 `" .. Souls .. "`",
+						["inline"] = false
+					},
+					{
+						["name"] = "Potions:",
+						["value"] = "⚡ **Energy:** `" .. EnergyPotions .. "`\n👻 **Souls:** `" .. SoulsPotions .. "`\n⚔️ **Damage:** `" .. DamagePotions .. "`\n🍀 **Lucky:** `" .. LuckyPotions .. "`",
+						["inline"] = false
+					},
+					{
+						["name"] = "Runes:",
+						["value"] = table.concat(runes, "\n"),
+						["inline"] = false
+					}
+				}
+			}
+		}
+	}
+
+	local encodedJson = HttpService:JSONEncode(data)
+	local headers = {["content-type"] = "application/json"}
+	local options = {
+		Url = url,
+		Body = encodedJson,
+		Method = "POST",
+		Headers = headers
+	}
+
+	Library:Notify("Sending Webhook...", 5)
+	request(options)
+end
+
+Webhook:AddButton('Test Webhook', function()
+	sendWebhook()
+end)
+
+coroutine.resume(coroutine.create(function()
+	while task.wait(settings.webhookDelay * 60) do
+		if settings.enableWebhookInterval then
+			sendWebhook()
+		end
 	end
 end))
 
