@@ -262,7 +262,7 @@ end
 local function getMention(mention)
 	local translatedMention = ""
 	
-	if mention == "Mention ID" then
+	if mention == "Mention ID" or mention == "" then
 		translatedMention = ""
 	else
 		translatedMention = "<@" .. mention .. ">"
