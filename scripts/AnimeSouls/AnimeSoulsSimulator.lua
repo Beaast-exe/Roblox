@@ -28,7 +28,10 @@ local defaultSettings = {
 	enableWebhookInterval = false
 }
 
-if not pcall(function() readfile(saveFile) end) then writefile(saveFile, HttpService:JSONEncode(defaultSettings)) end
+if not pcall(function() readfile(saveFile) end) then
+	if not isfolder(saveFolderName) then makefolder(saveFolderName) end
+	writefile(saveFile, HttpService:JSONEncode(defaultSettings))
+end
 local settings = HttpService:JSONDecode(readfile(saveFile))
 
 local function SaveConfig()
