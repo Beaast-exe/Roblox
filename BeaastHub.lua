@@ -29,4 +29,7 @@ elseif placeID == 11040063484 then
 -- // ANIME SOULS SIMULATOR \\ --
 elseif placeID == 11542692507 then
 	loadstring(game:HttpGet("https://raw.githubusercontent.com/Beaast-exe/Roblox/master/scripts/AnimeSouls/AnimeSoulsSimulator.lua"))()
+-- // ANIME STAR SIMULATOR \\ --
+elseif placeID == 12547990726 then
+	loadstring(game:HttpGet("https://raw.githubusercontent.com/Beaast-exe/Roblox/master/scripts/AnimeStar/AnimeStarSimulator.lua"))()
 end
