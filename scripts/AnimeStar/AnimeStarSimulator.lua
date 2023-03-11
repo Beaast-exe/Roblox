@@ -10,6 +10,7 @@ local ThemeManager = loadstring(game:HttpGet(repo .. 'addons/ThemeManager.lua'))
 
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
+local PlayerGui = LocalPlayer.PlayerGui
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RemoteEvent = ReplicatedStorage:WaitForChild("RemoteEvent")
 
@@ -83,8 +84,10 @@ end)
 coroutine.resume(coroutine.create(function()
 	while task.wait(0.2) do
 		if settings.autoSuper then
-			pcall(function()		
-				RemoteEvent:FireServer({ [1] = { [1] = "\5", [2] = "Super" } })
+			pcall(function()
+				if PlayerGui.Interface.BottomButtons.Super.Info.Text == "READY!" then
+					RemoteEvent:FireServer({ [1] = { [1] = "\5", [2] = "Super" } })
+				end
 			end)
 		end
 	end
@@ -105,7 +108,9 @@ coroutine.resume(coroutine.create(function()
 	while task.wait(0.2) do
 		if settings.autoUltra then
 			pcall(function()		
-				RemoteEvent:FireServer({ [1] = { [1] = "\5", [2] = "Ultra" } })
+				if PlayerGui.Interface.BottomButtons.Ultra.Info.Text == "READY!" then
+					RemoteEvent:FireServer({ [1] = { [1] = "\5", [2] = "Ultra" } })
+				end
 			end)
 		end
 	end
