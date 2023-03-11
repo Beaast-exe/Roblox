@@ -59,12 +59,7 @@ coroutine.resume(coroutine.create(function()
 	while task.wait(0.2) do
 		if settings.autoClick then
 			pcall(function()		
-				RemoteEvent:FireServer({
-					[1] = {
-						[1] = "\5",
-						[2] = "Tapping"
-					}
-				})
+				RemoteEvent:FireServer({ [1] = { [1] = "\5", [2] = "Tapping" } })
 			end)
 		end
 	end
@@ -82,7 +77,7 @@ Toggles["autoSuper"]:OnChanged(function()
 end)
 
 coroutine.resume(coroutine.create(function()
-	while task.wait(0.2) do
+	while task.wait(1) do
 		if settings.autoSuper then
 			pcall(function()
 				if PlayerGui.Interface.BottomButtons.Super.Info.Text == "READY!" then
@@ -136,7 +131,7 @@ end)
 -- UI Settings
 local MenuGroup = Tabs['UI Settings']:AddLeftGroupbox('Menu')
 MenuGroup:AddButton('Unload', function() Library:Unload() end)
-MenuGroup:AddLabel('Menu bind'):AddKeyPicker('MenuKeybind', { Default = 'RightShift', NoUI = true, Text = 'Menu keybind' })
+MenuGroup:AddLabel('Menu bind'):AddKeyPicker('MenuKeybind', { Default = 'RightControl', NoUI = true, Text = 'Menu keybind' })
 Library.ToggleKeybind = Options.MenuKeybind
 
 -- Addons:
