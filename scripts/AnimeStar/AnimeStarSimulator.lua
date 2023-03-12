@@ -22,6 +22,7 @@ local saveFile = saveFolderName .. "/" .. saveFileName
 
 local defaultSettings = {
 	autoClick = false,
+	removeClickLimit = false,
 	autoSuper = false,
 	autoUltra = false,
 	watermark = false,
@@ -30,6 +31,8 @@ local defaultSettings = {
 	autoBestGemsBeforeRebirth = false,
 	autoPractice = false
 }
+
+local defaultClickLimit = LocalPlayer.Tapping.Value
 
 if not pcall(function() readfile(saveFile) end) then
 	if not isfolder(saveFolderName) then makefolder(saveFolderName) end
@@ -49,7 +52,7 @@ local Tabs = {
 local Misc = Tabs["Main"]:AddRightGroupbox('Misc')
 
 Misc:AddToggle('autoClick', {
-	Text = "Auto Click",
+	Text = "Auto Chi",
 	Default = settings.autoClick,
 	Tooltip = "Auto click to farm Chi"
 })
@@ -57,6 +60,23 @@ Misc:AddToggle('autoClick', {
 Toggles["autoClick"]:OnChanged(function()
 	settings.autoClick = Toggles["autoClick"].Value
 	SaveConfig()
+end)
+
+Misc:AddToggle('removeClickLimit', {
+	Text = "Remove Click Limit",
+	Default = settings.removeClickLimit,
+	Tooltip = "Remove click limit (Use In-Game Auto Clicker)"
+})
+
+Toggles["removeClickLimit"]:OnChanged(function()
+	settings.removeClickLimit = Toggles["removeClickLimit"].Value
+	SaveConfig()
+
+	if settings.removeClickLimit then
+		LocalPlayer.Tapping.Value = 0.1
+	else
+		LocalPlayer.Tapping.Value = defaultClickLimit
+	end
 end)
 
 coroutine.resume(coroutine.create(function()
