@@ -24,7 +24,9 @@ local defaultSettings = {
 	autoClick = false,
 	autoSuper = false,
 	autoUltra = false,
-	watermark = false
+	watermark = false,
+	selectedRebirth = "10.00 Chi",
+	autoRebirth = false
 }
 
 if not pcall(function() readfile(saveFile) end) then
@@ -122,6 +124,104 @@ Toggles["watermark"]:OnChanged(function()
 	Library:SetWatermarkVisibility(Toggles["watermark"].Value)
 	SaveConfig()
 end)
+
+local Autos = Tabs["Main"]:AddLeftGroupbox('Autos')
+
+local rebirthsTexts = {}
+local rebirths = {}
+for i, v in next, PlayerGui.Interface.Guis.Rebirth.MainFrame.List:GetChildren() do
+	local listItemName = v.Name
+	local rebirthNumber = listItemName:gsub("Rebirth--", "")
+
+	if v.Name ~= "UIGradient" and v.Name ~= "UIListLayout" then
+		table.insert(rebirthsTexts, v.Background.Req.Text)
+
+		rebirths[v.Background.Req.Text] = rebirthNumber
+	end
+end
+
+Autos:AddDropdown('selectedRebirth', {
+	Values = rebirthsTexts,
+	Default = settings.selectedRebirth,
+	Multi = false,
+
+	Text = 'Selected Rebirth',
+	Tooltip = 'The rebirth for auto rebirth'
+})
+
+Options['selectedRebirth']:OnChanged(function()
+	settings.selectedRebirth = Options['selectedRebirth'].Value
+    SaveConfig()
+end)
+
+Autos:AddToggle('autoRebirth', {
+	Text = "Auto Rebirth",
+	Default = settings.autoRebirth,
+	Tooltip = "Enables Auto Rebirth"
+})
+
+Toggles["autoRebirth"]:OnChanged(function()
+	settings.autoRebirth = Toggles["autoRebirth"].Value
+	SaveConfig()
+end)
+
+coroutine.resume(coroutine.create(function()
+	while task.wait(1) do
+		if settings.autoRebirth then
+			pcall(function()
+				local selectedAutoRebirth = rebirths[settings.selectedRebirth]			
+				game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvent"):FireServer({ [1] = { [1] = "\3", [2] = "Rebirth", [3] = { ["Rebirth"] = tonumber(selectedAutoRebirth) }} })
+			end)
+		end
+	end
+end))
+
+Autos:AddDropdown('selectedPractice', {
+	Values = {'Spawn', 'Skull Mountain'},
+	Default = settings.selectedPractice,
+	Multi = false,
+
+	Text = 'Selected Practice',
+	Tooltip = 'The practice stand for auto practice'
+})
+
+Options['selectedPractice']:OnChanged(function()
+	settings.selectedPractice = Options['selectedPractice'].Value
+    SaveConfig()
+end)
+
+Autos:AddToggle('autoPractice', {
+	Text = "Auto Practice",
+	Default = settings.autoPractice,
+	Tooltip = "Enables Auto Practice"
+})
+
+Toggles["autoPractice"]:OnChanged(function()
+	settings.autoPractice = Toggles["autoPractice"].Value
+	SaveConfig()
+end)
+
+coroutine.resume(coroutine.create(function()
+	while task.wait(0.1) do
+		if settings.autoPractice then
+			for i, v in next, game:GetService("Workspace")['__GAME']['__STANDS']:GetChildren() do
+				if v.Data.Restriction.Value == settings.selectedPractice then
+					game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvent"):FireServer({
+						[1] = {
+							[1] = "\5",
+							[2] = "Practice",
+							[3] = v.Data
+						}
+					})
+				end
+			end
+		end
+	end
+end))
+
+--------------------
+--------------------
+--------------------
 
 Library:OnUnload(function()
 	print('Unloaded!')
