@@ -26,7 +26,9 @@ local defaultSettings = {
 	autoUltra = false,
 	watermark = false,
 	selectedRebirth = "10.00 Chi",
-	autoRebirth = false
+	autoRebirth = false,
+	autoBestGemsBeforeRebirth = false,
+	autoPractice = false
 }
 
 if not pcall(function() readfile(saveFile) end) then
@@ -165,16 +167,55 @@ Toggles["autoRebirth"]:OnChanged(function()
 	SaveConfig()
 end)
 
+local sortChiButton = PlayerGui.Interface.Guis.Pets.SideButtons.Chi.MouseButton1Click
+local sortGemsButton = PlayerGui.Interface.Guis.Pets.SideButtons.Gems.MouseButton1Click
+local equipBestButton = PlayerGui.Interface.Guis.Pets.Buttons.Best.MouseButton1Click
+
+local function equipBest(type: string)
+	if type == "gems" then
+		firesignal(sortGemsButton)
+		task.wait(0.1)
+		firesignal(equipBestButton)
+	elseif type == "chi" then
+		firesignal(sortChiButton)
+		task.wait(0.1)
+		firesignal(equipBestButton)
+	end
+end
+
+local canBuyRebirthColor = "0 0 1 0.498039 0 1 0 1 0.498039 0 "
+--local cannotBuyRebirthColor = "0 1 0.333333 0.498039 0 1 1 0.333333 0.498039 0 "
+
 coroutine.resume(coroutine.create(function()
 	while task.wait(1) do
 		if settings.autoRebirth then
 			pcall(function()
-				local selectedAutoRebirth = rebirths[settings.selectedRebirth]			
-				game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvent"):FireServer({ [1] = { [1] = "\3", [2] = "Rebirth", [3] = { ["Rebirth"] = tonumber(selectedAutoRebirth) }} })
+				local selectedAutoRebirth = rebirths[settings.selectedRebirth]
+				
+				if tostring(PlayerGui.Interface.Guis.Rebirth.MainFrame.List["Rebirth-" .. selectedAutoRebirth].Background.Button.UIGradient.Color) == canBuyRebirthColor then
+					if settings.autoBestGemsBeforeRebirth then equipBest("gems") end
+					task.wait(0.5)
+					
+					game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvent"):FireServer({ [1] = { [1] = "\3", [2] = "Rebirth", [3] = { ["Rebirth"] = tonumber(selectedAutoRebirth) }} })
+				
+					task.wait(0.5)
+					if settings.autoBestGemsBeforeRebirth then equipBest("chi") end
+				end
 			end)
 		end
 	end
 end))
+
+Autos:AddToggle('autoBestGemsBeforeRebirth', {
+	Text = "Auto Equip Best Gems",
+	Default = settings.autoBestGemsBeforeRebirth,
+	Tooltip = "Equips Best Gems Characters before Rebirthing"
+})
+
+Toggles["autoBestGemsBeforeRebirth"]:OnChanged(function()
+	settings.autoBestGemsBeforeRebirth = Toggles["autoBestGemsBeforeRebirth"].Value
+	SaveConfig()
+end)
 
 Autos:AddDropdown('selectedPractice', {
 	Values = {'Spawn', 'Skull Mountain'},
