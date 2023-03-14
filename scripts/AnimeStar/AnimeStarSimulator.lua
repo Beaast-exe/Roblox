@@ -213,13 +213,17 @@ coroutine.resume(coroutine.create(function()
 				local selectedAutoRebirth = rebirths[settings.selectedRebirth]
 				
 				if tostring(PlayerGui.Interface.Guis.Rebirth.MainFrame.List["Rebirth-" .. selectedAutoRebirth].Background.Button.UIGradient.Color) == canBuyRebirthColor then
-					if settings.autoBestGemsBeforeRebirth then equipBest("gems") end
-					task.wait(0.5)
+					if settings.autoBestGemsBeforeRebirth then
+						equipBest("gems")
+						task.wait(0.5)
+					end
 					
-					game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvent"):FireServer({ [1] = { [1] = "\3", [2] = "Rebirth", [3] = { ["Rebirth"] = tonumber(selectedAutoRebirth) }} })
-				
-					task.wait(0.5)
-					if settings.autoBestGemsBeforeRebirth then equipBest("chi") end
+					game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvent"):FireServer({ [1] = { [1] = "\3", [2] = "Rebirth", [3] = { ["Rebirth"] = tonumber(selectedAutoRebirth) }} })				
+
+					if settings.autoBestGemsBeforeRebirth then
+						task.wait(0.5)
+						equipBest("chi")
+					end
 				end
 			end)
 		end
