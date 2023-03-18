@@ -29,7 +29,10 @@ local defaultSettings = {
 	selectedRebirth = "10.00 Chi",
 	autoRebirth = false,
 	autoBestGemsBeforeRebirth = false,
-	autoPractice = false
+	selectedPractice = "Spawn",
+	autoPractice = false,
+	selectedBoss = {},
+	autoTpBoss = false
 }
 
 local defaultClickLimit = LocalPlayer.Tapping.Value
@@ -100,18 +103,6 @@ Toggles["autoSuper"]:OnChanged(function()
 	SaveConfig()
 end)
 
-coroutine.resume(coroutine.create(function()
-	while task.wait(1) do
-		if settings.autoSuper then
-			pcall(function()
-				if PlayerGui.Interface.BottomButtons.Super.Info.Text == "READY!" then
-					RemoteEvent:FireServer({ [1] = { [1] = "\5", [2] = "Super" } })
-				end
-			end)
-		end
-	end
-end))
-
 Misc:AddToggle('autoUltra', {
 	Text = "Auto Ultra",
 	Default = settings.autoUltra,
@@ -124,7 +115,15 @@ Toggles["autoUltra"]:OnChanged(function()
 end)
 
 coroutine.resume(coroutine.create(function()
-	while task.wait(0.2) do
+	while task.wait(1) do
+		if settings.autoSuper then
+			pcall(function()
+				if PlayerGui.Interface.BottomButtons.Super.Info.Text == "READY!" then
+					RemoteEvent:FireServer({ [1] = { [1] = "\5", [2] = "Super" } })
+				end
+			end)
+		end
+
 		if settings.autoUltra then
 			pcall(function()		
 				if PlayerGui.Interface.BottomButtons.Ultra.Info.Text == "READY!" then
@@ -242,7 +241,7 @@ Toggles["autoBestGemsBeforeRebirth"]:OnChanged(function()
 end)
 
 Autos:AddDropdown('selectedPractice', {
-	Values = {'Spawn', 'Skull Mountain'},
+	Values = {'Spawn', 'Skull Mountain', 'Giant Forest'},
 	Default = settings.selectedPractice,
 	Multi = false,
 
@@ -283,6 +282,52 @@ coroutine.resume(coroutine.create(function()
 		end
 	end
 end))
+--[[
+local Boss = Tabs["Main"]:AddLeftGroupbox('Boss')
+
+Boss:AddDropdown('selectedBoss', {
+	Values = {'Kaguya', 'Keitoo', 'Titan'},
+	Default = settings.selectedBoss,
+	Multi = true,
+
+	Text = 'Selected Boss',
+	Tooltip = 'The boss for auto tp to boss'
+})
+
+Options['selectedBoss']:OnChanged(function()
+	settings.selectedBoss = Options['selectedBoss'].Value
+    SaveConfig()
+end)
+
+Boss:AddToggle('autoTpBoss', {
+	Text = "Auto TP to Boss",
+	Default = settings.autoTpBoss,
+	Tooltip = "Enables Auto TP to Selected Bosses"
+})
+
+Toggles["autoTpBoss"]:OnChanged(function()
+	settings.autoTpBoss = Toggles["autoTpBoss"].Value
+	SaveConfig()
+end)
+
+
+coroutine.resume(coroutine.create(function()
+	while task.wait(0.1) do
+		if settings.autoTpBoss then
+			for i, v in next, game:GetService("Workspace")["__GAME"]["__BOSSES"]:GetChildren() do
+				if settings.selectedBoss[v.Name] then
+					repeat
+						task.wait(0.1)
+						if settings.selectedBoss[v.Name] then
+							LocalPlayer.Character.HumanoidRootPart.CFrame = v.HumanoidRootPart.CFrame
+						end
+					until v.Data.Health == "0"
+				end
+			end
+		end
+	end
+end))
+]]--
 
 --------------------
 --------------------
