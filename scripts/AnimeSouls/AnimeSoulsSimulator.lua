@@ -245,7 +245,7 @@ local function runeCodeToString(rune_code, amount)
 	local RuneTranslated = ""
 	local RunesTranslations = {
 		rune_yellow = "🟨 **Yellow Rune:** `",
-		rune_pink = "✨ **Pink Rune:** `",
+		rune_pink = "~ **Pink Rune:** `",
 		rune_green = "🟩 **Green Rune:** `",
 		rune_blue = "🟦 **Blue Rune:** `",
 		rune_orange = "🟧 **Orange Rune:** `",
@@ -359,6 +359,95 @@ coroutine.resume(coroutine.create(function()
 		if settings.enableWebhookInterval then
 			sendWebhook()
 		end
+	end
+end))
+
+local info = Tabs["Main"]:AddRightGroupbox("Info")
+
+local function getPrice(type: string)
+	if type == "class" then
+		local classGui = LocalPlayer.PlayerGui.CenterUI.Class.Main.Mid
+
+		if classGui["maxed"].Visible then
+			return "MAXED"
+		else
+			local classPriceSouls = classGui["can_upgrade"].price.price.Text
+
+			return "" .. classPriceSouls .. " 👻"
+		end
+	elseif type == "sword" then
+		local swordsGui = LocalPlayer.PlayerGui.CenterUI.Swords.Main.Mid
+
+		if swordsGui["maxed"].Visible then
+			return "MAXED"
+		else
+			local swordPriceSouls = swordsGui["can_upgrade"].price.price.Text
+
+			return "" .. swordPriceSouls .. " 👻"
+		end
+	elseif type == "aura" then
+		local aurasGui = LocalPlayer.PlayerGui.CenterUI.Auras.Main.Mid
+
+		if aurasGui["maxed"].Visible then
+			return "MAXED"
+		else
+			local auraPriceSouls = aurasGui["can_upgrade"]["price_souls"].price.Text
+			local auraPriceRunes = aurasGui["can_upgrade"]["price_rune"].price.Text
+
+			return "" .. auraPriceSouls .. " 👻 + " .. auraPriceRunes .. " ✨"
+		end
+	end
+end
+
+local function getMultipliers(type: string)
+	if type == "class" then
+		local classGui = LocalPlayer.PlayerGui.CenterUI.Class.Main.Mid
+		local currentClassMultiplier = classGui["can_upgrade"]["current"].multiplier.Text
+		local nextClassMultiplier = classGui["can_upgrade"]["next"].multiplier.Text
+
+		if classGui["maxed"].Visible then
+			return "" .. currentClassMultiplier
+		else
+			return "" .. currentClassMultiplier .. " >> " .. nextClassMultiplier
+		end
+	elseif type == "sword" then
+		local swordsGui = LocalPlayer.PlayerGui.CenterUI.Swords.Main.Mid
+		local currentSwordMultiplier = swordsGui["can_upgrade"]["current"].multiplier.Text
+		local nextSwordMultiplier = swordsGui["can_upgrade"]["next"].multiplier.Text
+
+		if swordsGui["maxed"].Visible then
+			return "" .. currentSwordMultiplier
+		else
+			return "" .. currentSwordMultiplier .. " >> " .. nextSwordMultiplier
+		end
+	elseif type == "aura" then
+		local aurasGui = LocalPlayer.PlayerGui.CenterUI.Auras.Main.Mid
+		local currentAuraMultiplier = aurasGui["can_upgrade"]["current"].multiplier.Text
+		local nextAuraMultiplier = aurasGui["can_upgrade"]["next"].multiplier.Text
+
+		if aurasGui["maxed"].Visible then
+			return "" .. currentAuraMultiplier
+		else
+			return "" .. currentAuraMultiplier .. " >> " .. nextAuraMultiplier
+		end
+	end
+end
+
+local nextClassLabel = info:AddLabel("Next Class: 0")
+local classMultipliers = info:AddLabel("Multipliers: 0")
+local nextSwordLabel = info:AddLabel("Next Sword: 0")
+local swordMultipliers = info:AddLabel("Multipliers: 0")
+local nextAuraLabel = info:AddLabel("Next Aura: 0")
+local auraMultipliers = info:AddLabel("Multipliers: 0")
+
+coroutine.resume(coroutine.create(function()
+	while task.wait(5) do
+		nextClassLabel:SetText("Next Class: " .. getPrice("class"))
+		classMultipliers:SetText("Multipliers: " .. getMultipliers("class"))
+		nextSwordLabel:SetText("Next Sword: " .. getPrice("sword"))
+		swordMultipliers:SetText("Multipliers: " .. getMultipliers("sword"))
+		nextAuraLabel:SetText("Next Aura: " .. getPrice("aura"))
+		auraMultipliers:SetText("Multipliers: " .. getMultipliers("aura"))
 	end
 end))
 
