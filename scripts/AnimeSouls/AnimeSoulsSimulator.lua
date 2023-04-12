@@ -244,7 +244,7 @@ local function runeCodeToString(rune_code, amount)
 	local RuneTranslated = ""
 	local RunesTranslations = {
 		rune_yellow = "🟨 **Yellow Rune:** `",
-		rune_pink = "~ **Pink Rune:** `",
+		rune_pink = "✨ **Pink Rune:** `",
 		rune_green = "🟩 **Green Rune:** `",
 		rune_blue = "🟦 **Blue Rune:** `",
 		rune_orange = "🟧 **Orange Rune:** `",
@@ -361,7 +361,7 @@ coroutine.resume(coroutine.create(function()
 	end
 end))
 
-local info = Tabs["Main"]:AddRightGroupbox("Info")
+local info = Tabs["Main"]:AddLeftGroupbox("Info")
 
 local function getPrice(type: string)
 	if type == "class" then
@@ -432,12 +432,42 @@ local function getMultipliers(type: string)
 	end
 end
 
+local function getCurrency(type: string)
+	if type == "coins" then
+		local coinsGui = LocalPlayer.PlayerGui.CenterUI.AccessoryMerchant.Coins
+		local coinsText = tostring(coinsGui["bg"].amount.Text)
+
+		return "" .. coinsText .. " 🟡"
+	elseif type == "curses" then
+		local cursesGui = LocalPlayer.PlayerGui.CenterUI.Curses.Tokens
+		local cursesText = tostring(cursesGui["Background"].Amount.Text)
+
+		return "" .. cursesText .. " 😈"
+	elseif type == "passives" then
+		local passivesGui = LocalPlayer.PlayerGui.CenterUI.Passives.Main.Current
+		local passivesText = tostring(passivesGui.roll.label.Text)
+		local passivesAmount = tostring(string.match(passivesText, "%d+"))
+
+		return "" .. passivesAmount .. " 🗯️"
+	elseif type == "skills" then
+		local skillsGui = LocalPlayer.PlayerGui.CenterUI.Skills.Main.Spins
+		local skillsText = tostring(skillsGui.bg.amount.Text)
+
+		return "" .. skillsText .. " ➰"
+	end
+end
+
 local nextClassLabel = info:AddLabel("Next Class: 0")
 local classMultipliers = info:AddLabel("Multipliers: 0")
 local nextSwordLabel = info:AddLabel("Next Sword: 0")
 local swordMultipliers = info:AddLabel("Multipliers: 0")
 local nextAuraLabel = info:AddLabel("Next Aura: 0")
 local auraMultipliers = info:AddLabel("Multipliers: 0")
+info:AddDivider()
+local coins = info:AddLabel("Coins: 0")
+local curses = info:AddLabel("Curse Tokens: 0")
+local passives = info:AddLabel("Passive Tokens: 0")
+local skills = info:AddLabel("Skill Spins: 0")
 
 coroutine.resume(coroutine.create(function()
 	while task.wait(5) do
@@ -447,6 +477,10 @@ coroutine.resume(coroutine.create(function()
 		swordMultipliers:SetText("Multipliers: " .. getMultipliers("sword"))
 		nextAuraLabel:SetText("Next Aura: " .. getPrice("aura"))
 		auraMultipliers:SetText("Multipliers: " .. getMultipliers("aura"))
+		coins:SetText("Coins: " .. getCurrency("coins"))
+		curses:SetText("Curse Tokens: " .. getCurrency("curses"))
+		passives:SetText("Passive Tokens: " .. getCurrency("passives"))
+		skills:SetText("Skill Spins: " .. getCurrency("skills"))
 	end
 end))
 
