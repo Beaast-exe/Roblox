@@ -145,8 +145,8 @@ task.spawn(function()
 	while task.wait() do
 		if settings.teleportGamepass then
 			TeleportButton.ImageTransparency = 0
-			TeleportButton.Background.ImageTransparency = 0
-			TeleportButton.Icon.ImageTransparency = 0
+			TeleportButton:WaitForChild('Background').ImageTransparency = 0
+			TeleportButton:WaitForChild('Icon').ImageTransparency = 0
 			if Notification:FindFirstChild("Error") then
 				if Notification["Error"].Text.Text == "You don't have teleport gamepass!" then
 					Notification["Error"]:Destroy()
