@@ -145,6 +145,7 @@ task.spawn(function()
 	while task.wait() do
 		if settings.teleportGamepass then
 			TeleportButton.ImageTransparency = 0
+			repeat task.wait() until TeleportButton:FindFirstChild('Background')
 			TeleportButton:WaitForChild('Background').ImageTransparency = 0
 			TeleportButton:WaitForChild('Icon').ImageTransparency = 0
 			if Notification:FindFirstChild("Error") then
