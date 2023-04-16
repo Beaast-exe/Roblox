@@ -444,11 +444,10 @@ local function getCurrency(type: string)
 
 		return "" .. cursesText .. " 😈"
 	elseif type == "passives" then
-		local passivesGui = LocalPlayer.PlayerGui.CenterUI.Passives.Main.Current
-		local passivesText = tostring(passivesGui.roll.label.Text)
-		local passivesAmount = tostring(passivesText:gsub("ROLL %[", ""))
+		local passivesGui = LocalPlayer.PlayerGui.CenterUI.Passives
+		local passivesText = tostring(passivesGui.Rolls.Background.Amount.Text)
 
-		return "" .. passivesAmount:gsub("]", "") .. " 🗯️"
+		return "" .. passivesText .. " 🗯️"
 	elseif type == "skills" then
 		local skillsGui = LocalPlayer.PlayerGui.CenterUI.Skills.Main.Spins
 		local skillsText = tostring(skillsGui.bg.amount.Text)
