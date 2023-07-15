@@ -69,7 +69,7 @@ local starterPlayerScriptsFolder = player.PlayerScripts.StarterPlayerScriptsFold
 local REMOTE = ReplicatedStorage.Remote
 local BINDABLE = ReplicatedStorage.Bindable
 
-local MAX_SUMMON = 9
+local MAX_SUMMON = 13
 local MAX_EQUIPPED = 10
 local MAX_ROOM = 50
 local KILLING_METEOR = false
@@ -237,9 +237,6 @@ function Initialize()
 	InitializeTrial()
 	task.wait(1)
 	GenEggStats()
-
-	local opens = tostring(PlayerGui.MainGui.Hatch.Buttons.Open.Price.Text):match('(%d+)')
-	MAX_SUMMON = opens
 end
 
 Initialize()
@@ -388,6 +385,13 @@ coroutine.resume(coroutine.create(function()
 				BINDABLE.ToggleMount:Fire()
 			end
 		end
+	end
+end))
+
+coroutine.resume(coroutine.create(function()
+	while task.wait(5) do
+		local opens = tostring(PlayerGui.MainGui.Hatch.Buttons.Open.Price.Text):match('(%d+)')
+		MAX_SUMMON = opens
 	end
 end))
 
