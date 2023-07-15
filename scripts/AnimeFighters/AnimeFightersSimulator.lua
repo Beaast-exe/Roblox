@@ -23,8 +23,8 @@ local saveFile = saveFolderName .. '/' .. gameFolderName .. '/' .. saveFileName
 
 local defaultSettings = {
 	['AutoStar'] = {
-		['Enabled'] = false,
-		['EnabledMultiOpen'] = false,
+		--['Enabled'] = false,
+		--['EnabledMultiOpen'] = false,
 		['SelectedStar'] = 'Z Star'
 	},
 	['Misc'] = {
@@ -38,6 +38,9 @@ local defaultSettings = {
 	webhookLink = 'Webhook Link',
 	webhookMentionId = 'Mention ID'
 }
+
+local enabledAutoStar = false
+local enabledMultiOpen = false
 
 if not isfolder(saveFolderName) then makefolder(saveFolderName) end
 if not isfolder(saveFolderName .. '/' .. gameFolderName) then makefolder(saveFolderName .. '/' .. gameFolderName) end
@@ -264,7 +267,7 @@ Misc:AddToggle('autoStar', {
     Tooltip = 'Auto claim Daily Gifts',
 
     Callback = function(value)
-        settings['AutoStar']['Enabled'] = value
+        enabledAutoStar = value
 		SaveConfig()
     end
 })
@@ -275,7 +278,7 @@ Misc:AddToggle('autoMaxOpen', {
     Tooltip = 'Auto Max Open',
 
     Callback = function(value)
-        settings['AutoStar']['EnabledMultiOpen'] = value
+        enabledMultiOpen = value
 		SaveConfig()
     end
 })
@@ -396,11 +399,11 @@ do
 			if Library.Unloaded then
 				conn:Disconnect()
 				conn = nil
-				settings['AutoStar']['Enabled'] = false
+				enabledAutoStar = false
 				return
 			end
 
-			if settings['AutoStar']['Enabled'] and settings['AutoStar']['SelectedStar'] ~= nil and not table.find(IGNORED_WORLDS, player.World.Value) then
+			if enabledAutoStar and settings['AutoStar']['SelectedStar'] ~= nil and not table.find(IGNORED_WORLDS, player.World.Value) then
 				task.spawn(function()
 					if settings['AutoStar']['SelectedStar'] then
 						local egg = Workspace.Worlds:FindFirstChild(eggDisplayNameToNameLookUp[settings['AutoStar']['SelectedStar']], true)
@@ -417,14 +420,14 @@ do
 	-- // AUTO MAX OPEN
 	task.spawn(function()
 		while not Library.Unloaded do
-			if settings['AutoStar']['EnabledMultiOpen'] and settings['AutoStar']['SelectedStar'] then
+			if enabledMultiOpen and settings['AutoStar']['SelectedStar'] then
 				REMOTE.AttemptMultiOpen:FireServer(eggDisplayNameToNameLookUp[settings['AutoStar']['SelectedStar']])
 			end
 
 			task.wait(0.2)
 		end
 
-		settings['AutoStar']['EnabledMultiOpen'] = false
+		enabledMultiOpen = false
 	end)
 end
 
