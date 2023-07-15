@@ -451,7 +451,7 @@ MenuGroup:AddLabel('Menu bind'):AddKeyPicker('MenuKeybind', {
 	NoUI = true,
 	Text = 'Menu keybind',
 	
-	Callback = function(value)
+	ChangedCallback = function(value)
         settings.menuKeybind = value
 		SaveConfig()
     end
