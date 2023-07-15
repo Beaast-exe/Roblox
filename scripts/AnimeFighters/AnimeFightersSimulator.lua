@@ -34,6 +34,7 @@ local defaultSettings = {
 		['DailyGifts'] = false,
 		['Merchant'] = false
 	},
+	menuKeybind = 'LeftShift',
 	watermark = false,
 	webhookLink = 'Webhook Link',
 	webhookMentionId = 'Mention ID'
@@ -445,7 +446,16 @@ local MenuGroup = Tabs['UI Settings']:AddLeftGroupbox('Menu')
 
 -- I set NoUI so it does not show up in the keybinds menu
 MenuGroup:AddButton('Unload', function() Library:Unload() end)
-MenuGroup:AddLabel('Menu bind'):AddKeyPicker('MenuKeybind', { Default = 'LeftControl', NoUI = true, Text = 'Menu keybind' })
+MenuGroup:AddLabel('Menu bind'):AddKeyPicker('MenuKeybind', {
+	Default = settings.menuKeybind,
+	NoUI = true,
+	Text = 'Menu keybind',
+	
+	Callback = function(value)
+        settings.menuKeybind = value
+		SaveConfig()
+    end
+})
 Library.ToggleKeybind = Options.MenuKeybind
 
 -- Addons:
