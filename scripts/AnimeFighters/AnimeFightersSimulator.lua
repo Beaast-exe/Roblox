@@ -664,7 +664,11 @@
 
 								repeat
 									if enemy:FindFirstChild('Attackers') then
-										BINDABLE.SendPet:Fire(enemy, true)
+										if settings['AutoFarm']['AttackAll'] then
+											task.wait(0.1)
+										else
+											BINDABLE.SendPet:Fire(enemy, true)
+										end
 									end
 									task.wait()
 								until Library.Unloaded
@@ -685,7 +689,11 @@
 
 								repeat
 									if enemy:FindFirstChild("Attackers") then
-                                        BINDABLE.SendPet:Fire(enemy, true)
+                                        if settings['AutoFarm']['AttackAll'] then
+											task.wait(0.1)
+										else
+											BINDABLE.SendPet:Fire(enemy, true)
+										end
                                     end
 									task.wait()
 								until Library.Unloaded
