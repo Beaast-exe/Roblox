@@ -31,6 +31,11 @@
 			['AutoUltSkip'] = false,
 			['BoostPetSpeed'] = false
 		},
+		['AutoRaid'] = {
+			['Enabled'] = false,
+			['ToggleAllRaids'] = false,
+			['raidWorlds'] = {}
+		},
 		['AutoStar'] = {
 			--['Enabled'] = false,
 			--['EnabledMultiOpen'] = false,
@@ -191,6 +196,8 @@
 		local floorNumberText = PlayerGui.MainGui.TowerTimer.CurrentFloor.Value
 	end
 
+	local yesButton = PlayerGui.MainGui.RaidTransport.Main.Yes
+
 	local bstEggs = {}
 	local bstEggsTable = {
 		["Z Star"] = "GokuEgg", ["Ninja Star"] = "NarutoEgg", ["Crazy Star"] = "JojoEgg", ["Pirate Star"] = "OnePieceEgg", ["Hero Star"] = "MHAEgg", ["Attack Star"] = "AOTEgg", ["Demon Star"] = "DemonEgg", ["Ghoul Star"] = "GhoulEgg", ["Hunter Star"] = "HxHEgg", ["Swordsman Star"] = "SAOEgg", ["Empty Star"] = "BleachEgg", ["Cursed Star"] = "JJKEgg", ["Power Star"] = "OPMEgg", ["Sins Star"] = "7DSEgg", ["Destiny Star"] =" FateEgg", ["Luck Star"] = "BCEgg", ["Alchemy Star"] = "FMAEgg", ["Slime Star"] = "SlimeEgg", ["Flame Star"] = "FireForceEgg", ["Champion Star"] = "RoREgg", ["Wizard Star"] = "FairyTailEgg", ["Icy Star"] = "ReZeroEgg", ["Saw Star"] = "ChainsawManEgg", ["Esper Star"] = "Mob100Egg", ["Violent Star"] = "DorohedoroEgg", ["Young Ninja Star"] = "BorutoEgg", ["Gangster Star"] = "TokyoRevengerEgg", ["Inmate Star"] = "JJBAStoneOceanEgg", ["Card Star"] = "YugiohEgg", ["Academy Star"] = "KLKEgg", ["Struggler Star"] = "BerserkEgg", ["Rising Star"] = "ShieldHeroEgg", ["Lord Star"] = "OverlordEgg", ["Soul Star"] = "SoulEaterEgg", ["Knight Star"] = "CodeGeassEgg", ["Abyss Star"] = "MadeInAbyssEgg", ["Blessed Star"] = "HellsParadiseEgg", ["Wanzo Star"] = "OPWanoEgg", ["Summer Star"] = "SummerEgg"
@@ -199,6 +206,12 @@
 	local enemiesRange = 150
 
 	-- // Functions
+	function retreat()
+		VirtualInputManager:SendKeyEvent(true, 'R', false, nil)
+		task.wait(0.005)
+		VirtualInputManager:SendKeyEvent(false, 'R', false, nil)
+	end
+
 	function GenEggStats()
 		local orderedEggs = {
 			[1] = "Z Star",
@@ -252,6 +265,18 @@
 			end
 		end
 	end
+
+	function movePetsToPlayer()
+        for _, pet in ipairs(player.Pets:GetChildren()) do
+            local targetPart = pet.Value:FindFirstChild("TargetPart")
+            local humanoidRootPart = pet.Value:FindFirstChild("HumanoidRootPart")
+
+            if targetPart and humanoidRootPart then
+                targetPart.CFrame = character.HumanoidRootPart.CFrame
+                humanoidRootPart.CFrame = character.HumanoidRootPart.CFrame
+            end
+        end
+    end
 
 	local lastClosest = nil
 
@@ -338,6 +363,7 @@
 			SaveConfig()
 		end
 	})
+
 	AutoFarm:AddToggle('ignoreChests', {
 		Text = 'Ignore Chests',
 		Default = settings['AutoFarm']['IgnoreChests'],
@@ -389,6 +415,29 @@
 
 		Callback = function(value)
 			settings['AutoFarm']['BoostPetSpeed'] = value
+			SaveConfig()
+		end
+	})
+
+	local AutoRaid = Tabs['Main']:AddLeftGroupbox('Auto Raid')
+	AutoRaid:AddToggle('enableAutoRaid', {
+		Text = 'Auto Raid',
+		Default = settings['AutoRaid']['Enabled'],
+		Tooltip = 'Enable Auto Raid',
+
+		Callback = function(value)
+			settings['AutoRaid']['Enabled'] = value
+			SaveConfig()
+		end
+	})
+
+	AutoRaid:AddToggle('enableAllRaids', {
+		Text = 'Toggle All Raids',
+		Default = settings['AutoRaid']['ToggleAllRaids'],
+		Tooltip = 'Enable All Raids',
+
+		Callback = function(value)
+			settings['AutoRaid']['ToggleAllRaids'] = value
 			SaveConfig()
 		end
 	})
@@ -566,6 +615,101 @@
 	end))
 
 	do
+		-- // AUTORAID
+		task.spawn(function()
+			while task.wait() and not Library.Unloaded do
+				if settings['AutoRaid']['Enabled'] and player.World.Value == 'Raid' then
+					local raidData = Workspace.Worlds['Raid'].RaidData
+					local enemies = Workspace.Worlds['Raid'].Enemies
+
+					for _, enemy in ipairs(enemies:GetChildren()) do
+						if raidData.Enemies.Value ~= 0 and enemy.Name ~= raidData.BossId.Value then
+							pcall(function()
+								character.HumanoidRootPart.CFrame = enemy.HumanoidRootPart.CFrame
+								movePetsToPlayer()
+
+								repeat
+									if enemy:FindFirstChild('Attackers') then
+										BINDABLE.SendPet:Fire(enemy, true)
+									end
+									task.wait()
+								until Library.Unloaded
+								or enemy:FindFirstChild('HumanoidRootPart') == nil
+								or enemy:FindFirstChild('Health') == nil
+								or enemy:FindFirstChild('Attackers') == nil
+								or player.World.Value ~= 'Raid'
+								or not settings['AutoRaid']['Enabled']
+								or raidData.Enemies.Value == 0
+								or enemy.Health.Value <= 0
+
+								retreat()
+							end)
+						elseif raidData.Forcefield.Value == false and raidData.Enemies.Value == 0 and enemy.Name == raidData.BossId.Value then
+							pcall(function()
+								character.Humanoid.CFrame = enemy.HumanoidRootPart.CFrame
+								movePetsToPlayer()
+
+								repeat
+									if enemy:FindFirstChild("Attackers") then
+                                        BINDABLE.SendPet:Fire(enemy, true)
+                                    end
+									task.wait()
+								until Library.Unloaded
+                                or enemy:FindFirstChild("HumanoidRootPart") == nil
+                                or enemy:FindFirstChild("Health") == nil
+                                or enemy:FindFirstChild("Attackers") == nil
+                                or player.World.Value ~= "Raid"
+                                or not settings['AutoRaid']['Enabled']
+                                or raidData.Forcefield.Value == true
+                                or raidData.Enemies.Value > 0
+                                or enemy.Health.Value <= 0
+
+								retreat()
+							end)
+						end
+					end
+				end
+
+				task.wait()
+			end
+		end)
+
+		-- // AUTORAID TP
+		task.spawn(function()
+			while not Library.Unloaded do
+				if settings['AutoRaid']['Enabled'] then
+					local currentRaidMap = Workspace.Worlds['Raid'].Map:FindFirstChildOfClass('Model')
+					if currentRaidMap then
+						local worldName = Workspace.Worlds['Raid'].RaidData.CurrentWorld.Value
+						
+						if raidWorlds[worldName] == true or settings['AutoRaid']['ToggleAllRaids'] then
+							local min = os.date("%M")
+
+							if (settings['AutoRaid']['Enabled'] and min == '14') or (settings['AutoRaid']['Enabled'] and min == '44') then
+								for _, v in pairs(getconnections(yesButton.Activated)) do
+									v:Fire()
+
+									repeat
+										task.wait()
+										min = os.date("%M")
+									until min == '15' or min =='45' or Library.Unloaded or not settings['AutoRaid']['ToggleAllRaids']
+									--until min == '15' or min =='45' or Library.Unloaded or not raidWorlds[worldName]
+								end
+							else
+								repeat
+									task.wait()
+									min = os.date("%M")
+								until min == '14' or min =='44' or Library.Unloaded or not settings['AutoRaid']['ToggleAllRaids']
+								--until min == '14' or min =='44' or Library.Unloaded or not raidWorlds[worldName]
+							end
+						end
+					end
+				end
+
+				task.wait()
+			end
+		end)
+
 		-- // AUTOFARM ALL
 		task.spawn(function()
 			while task.wait(0.05) and not Library.Unloaded do
