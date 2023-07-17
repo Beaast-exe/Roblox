@@ -33,6 +33,8 @@
 		},
 		['AutoRaid'] = {
 			['Enabled'] = false,
+			['BackPosition'] = '"7656.22852, -180.359406, -7856.69971, 1, 3.68046464e-08, 3.72713606e-14, -3.68046464e-08, 1, 5.18453689e-08, -3.53632088e-14, -5.18453689e-08, 1"',
+			['BackWorld'] = 'OPWano',
 			['ToggleAllRaids'] = false,
 			['raidWorlds'] = {}
 		},
@@ -197,6 +199,7 @@
 	end
 
 	local yesButton = PlayerGui.MainGui.RaidTransport.Main.Yes
+	local confirmRaidButton = PlayerGui.RaidGui.RaidResults.Confirm
 
 	local bstEggs = {}
 	local bstEggsTable = {
@@ -265,6 +268,14 @@
 			end
 		end
 	end
+
+	function tp(world, pos)
+        if world ~= nil then
+            player.World.Value = world
+            REMOTE.AttemptTravel:InvokeServer(world)
+            character.HumanoidRootPart.CFrame = pos
+        end
+    end
 
 	function movePetsToPlayer()
         for _, pet in ipairs(player.Pets:GetChildren()) do
@@ -440,6 +451,29 @@
 			settings['AutoRaid']['ToggleAllRaids'] = value
 			SaveConfig()
 		end
+	})
+
+	local SelectPositionButton = AutoRaid:AddButton({
+		Text = 'Save Back Position',
+		Func = function()
+			settings['AutoRaid']['BackPosition'] = tostring(character.HumanoidRootPart.CFrame)
+        	settings['AutoRaid']['BackWorld'] = player.World.Value
+			SaveConfig()
+			Library:Notify('Saved Position', 5)
+		end,
+		DoubleClick = false
+	})
+
+	function stringToCFrame(string)
+		return CFrame.new(table.unpack(string:gsub(' ', ''):split(',')))
+	end
+
+	local TestSavedPosition = AutoRaid:AddButton({
+		Text = 'Test Back Position',
+		Func = function()
+			tp(settings['AutoRaid']['BackWorld'], stringToCFrame(settings['AutoRaid']['BackPosition']))
+		end,
+		DoubleClick = false
 	})
 
 	local AutoStar = Tabs['Main']:AddLeftGroupbox('Auto Star')
@@ -702,6 +736,39 @@
 								until min == '14' or min =='44' or Library.Unloaded or not settings['AutoRaid']['ToggleAllRaids']
 								--until min == '14' or min =='44' or Library.Unloaded or not raidWorlds[worldName]
 							end
+						end
+					end
+				end
+
+				task.wait()
+			end
+		end)
+
+		-- // RETURN FROM RAID
+		task.spawn(function()
+			local raidData = Workspace.Worlds['Raid'].RaidData
+			local enemies = Workspace.Worlds['Raid'].Enemies
+			local debounce = false
+
+			while not Library.Unloaded do
+				if player.World.Value == 'Raid' then
+					local enemies = Workspace.Worlds['Raid'].Enemies:GetChildren()
+
+					if PlayerGui.RaidGui.RaidResults.Visible == true and #enemies == 0 then
+						for _, v in pairs(getconnections(confirmRaidButton.Activated)) do
+							v:Fire()
+
+							repeat
+								pcall(function()
+									debounce = true
+									table.clear(sentDebounce)
+									tp(settings['AutoRaid']['BackWorld'], stringToCFrame(settings['AutoRaid']['BackPosition']))
+									task.wait(1)
+
+									debounce = false
+								end)
+								
+							until PlayerGui.RaidGui.RaidResults.Visible == false or Library.Unloaded or not settings['AutoRaid']['Enabled']
 						end
 					end
 				end
