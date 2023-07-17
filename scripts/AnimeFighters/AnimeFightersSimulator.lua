@@ -22,6 +22,12 @@ local saveFileName = game:GetService('Players').LocalPlayer.Name .. '.json'
 local saveFile = saveFolderName .. '/' .. gameFolderName .. '/' .. saveFileName
 
 local defaultSettings = {
+	['AutoFarm'] = {
+		['AutoClick'] = false,
+		['AutoCollect'] = false,
+		['AutoUltSkip'] = false,
+		['BoostPetSpeed'] = false
+	},
 	['AutoStar'] = {
 		--['Enabled'] = false,
 		--['EnabledMultiOpen'] = false,
@@ -137,9 +143,6 @@ local mediumTrial
 local hardTrial
 local ultimateTrial
 
-local autoDamage
-local autoCollect
-local autoUltSkip
 local reEquippingPets = false
 local equippingTeam = false
 
@@ -240,14 +243,61 @@ function Initialize()
 	InitializeTrial()
 	task.wait(1)
 	GenEggStats()
+	task.wait(1)
+	Library:Notify(string.format('Script Loaded in %.2f second(s)!', tick() - StartTick), 5)
 end
 
 Initialize()
 
 -- // LIBRARY
-local Misc = Tabs['Main']:AddLeftGroupbox('Auto Star')
+local AutoFarm = Tabs['Main']:AddLeftGroupbox('Auto Farm')
+AutoFarm:AddToggle('autoClick', {
+    Text = 'Auto Click',
+    Default = settings['AutoFarm']['AutoClick'],
+    Tooltip = 'Auto click damage',
 
-Misc:AddDropdown('starDropdown', {
+    Callback = function(value)
+        settings['AutoFarm']['AutoClick'] = value
+		SaveConfig()
+    end
+})
+
+AutoFarm:AddToggle('autoCollect', {
+    Text = 'Auto Collect',
+    Default = settings['AutoFarm']['AutoCollect'],
+    Tooltip = 'Auto collect drops',
+
+    Callback = function(value)
+        settings['AutoFarm']['AutoCollect'] = value
+		SaveConfig()
+    end
+})
+
+AutoFarm:AddToggle('autoUltSkip', {
+    Text = 'Ult Skip',
+    Default = settings['AutoFarm']['AutoUltSkip'],
+    Tooltip = 'Skip ultimate animation',
+
+    Callback = function(value)
+        settings['AutoFarm']['AutoUltSkip'] = value
+		SaveConfig()
+    end
+})
+
+AutoFarm:AddToggle('boostPetSpeed', {
+    Text = 'Boost Pet Speed (Re-Equip)',
+    Default = settings['AutoFarm']['BoostPetSpeed'],
+    Tooltip = 'Boosts Fighters Speed (Need Passives)',
+
+    Callback = function(value)
+        settings['AutoFarm']['BoostPetSpeed'] = value
+		SaveConfig()
+    end
+})
+
+local AutoStar = Tabs['Main']:AddLeftGroupbox('Auto Star')
+
+AutoStar:AddDropdown('starDropdown', {
     Values = bstEggs,
     Default = settings['AutoStar']['SelectedStar'], -- number index of the value / string
     Multi = false, -- true / false, allows multiple choices to be selected
@@ -261,7 +311,7 @@ Misc:AddDropdown('starDropdown', {
     end
 })
 
-Misc:AddToggle('autoStar', {
+AutoStar:AddToggle('autoStar', {
     Text = 'Auto Star',
     Default = false,
     Tooltip = 'Auto claim Daily Gifts',
@@ -272,7 +322,7 @@ Misc:AddToggle('autoStar', {
     end
 })
 
-Misc:AddToggle('autoMaxOpen', {
+AutoStar:AddToggle('autoMaxOpen', {
     Text = 'Auto Max Open',
     Default = false,
     Tooltip = 'Auto Max Open',
@@ -283,8 +333,7 @@ Misc:AddToggle('autoMaxOpen', {
     end
 })
 
-Misc:AddLabel('These 2 don\'t save in the config')
-Misc:AddLabel('To prevent kicks when you execute')
+AutoStar:AddLabel('Disable before teleporting')
 
 local Claims = Tabs['Main']:AddRightGroupbox('Claims')
 
@@ -368,7 +417,7 @@ Claims:AddToggle('autoMount', {
 })
 
 coroutine.resume(coroutine.create(function()
-	while task.wait(0.2) do
+	while task.wait(1) do
 		if Library.Unloaded then return end
 		
 		if settings['Misc']['DailyTicket'] then
@@ -436,6 +485,64 @@ do
 
 		enabledMultiOpen = false
 	end)
+
+	-- // CLICKER DAMAGE
+	task.spawn(function()
+		while not Library.Unloaded do
+			if settings['AutoFarm']['AutoClick'] then
+				REMOTE.ClickerDamage:FireServer()
+			end
+
+			task.wait(0.05)
+		end
+	end)
+
+	-- // AUTO COLLECT
+	task.spawn(function()
+		while not Library.Unloaded do
+			if settings['AutoFarm']['AutoCollect'] then
+				for _, v in ipairs(Workspace.Effects:GetDescendants()) do
+					if v.Name == 'Base' then
+						v.CFrame = character.HumanoidRootPart.CFrame
+					end
+				end
+			end
+
+			task.wait()
+		end
+	end)
+
+	-- // BOOST PET SPEED
+	task.spawn(function()
+		while not Library.Unloaded do
+			if settings['AutoFarm']['BoostPetSpeed'] then
+				for _, tab in pairs(passiveStats) do
+					if tab.Effects then
+						tab.Effects.Speed = 10
+					end
+				end
+			end
+
+
+			task.wait(1)
+		end
+	end)
+
+	-- // SKIP ULTIMATE ANIMATION
+	task.spawn(function()
+		while not Library.Unloaded do
+			if settings['AutoFarm']['AutoUltSkip'] then
+				for _, pet in ipairs(player.Pets:GetChildren()) do
+					task.spawn(function()
+						REMOTE.PetAttack:FireServer(pet.Value)
+						REMOTE.PetAbility:FireServer(pet.Value)
+					end)
+				end
+			end
+
+			task.wait(0.3)
+		end
+	end)
 end
 
 Library:OnUnload(function()
@@ -452,12 +559,13 @@ MenuGroup:AddLabel('Menu bind'):AddKeyPicker('MenuKeybind', {
 	Default = settings.menuKeybind,
 	NoUI = true,
 	Text = 'Menu keybind',
-	
+
 	ChangedCallback = function(value)
-        settings.menuKeybind = value
+        settings.menuKeybind = Options.MenuKeybind.Value
 		SaveConfig()
     end
 })
+
 Library.ToggleKeybind = Options.MenuKeybind
 
 -- Addons:
