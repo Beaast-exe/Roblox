@@ -33,9 +33,12 @@
 		},
 		['AutoRaid'] = {
 			['Enabled'] = false,
-			['BackPosition'] = '"7656.22852, -180.359406, -7856.69971, 1, 3.68046464e-08, 3.72713606e-14, -3.68046464e-08, 1, 5.18453689e-08, -3.53632088e-14, -5.18453689e-08, 1"',
+			['BackPosition'] = '7656.22852, -180.359406, -7856.69971, 1, 3.68046464e-08, 3.72713606e-14, -3.68046464e-08, 1, 5.18453689e-08, -3.53632088e-14, -5.18453689e-08, 1',
 			['BackWorld'] = 'OPWano',
 			['ToggleAllRaids'] = false,
+			['Team1'] = 1,
+			['Team2'] = 1,
+			['EnableTeams'] = false,
 			['raidWorlds'] = {}
 		},
 		['AutoStar'] = {
@@ -119,11 +122,8 @@
 	local IGNORED_METEOR_FARM_WORLDS = {'Tower', 'Raid'}
 	local TEMP_METEOR_FARM_IGNORE = {}
 
-	local playerWorldEnemies = {}
-	local playerClosestEnemy = nil
-	local playerClosestEnemyDistance = math.huge
-	local attackingMob = nil
-
+	local playerTeamsNames = {}
+	local playerTeams = {}
 
 	local mobs = {}
 	local eggData = {}
@@ -196,6 +196,18 @@
 		local towerTime = PlayerGui.MainGui.TowerTimer.Main.Time
 		local yesButton = PlayerGui.MainGui.RaidTransport.Main.Yes
 		local floorNumberText = PlayerGui.MainGui.TowerTimer.CurrentFloor.Value
+	end
+
+	function ResetPlayerTeams()
+		playerTeamsNames = {}
+		playerTeams = {}
+
+		for k, v in pairs(PlayerGui.MainGui.Pets.TeamsList.Main.Scroll:GetChildren()) do
+			if v.Name == 'TeamTemplate' then
+				playerTeams[v.TeamName.Text] = v.Button
+				if not table.find(playerTeamsNames, v.TeamName.Text) then table.insert(playerTeamsNames, v.TeamName.Text) end
+			end
+		end
 	end
 
 	local yesButton = PlayerGui.MainGui.RaidTransport.Main.Yes
@@ -317,7 +329,6 @@
 
 			if Closest == nil then ClosestDistance = nil end
 
-			print(Closest)
 			return Closest, ClosestDistance
 		end
 	end
@@ -354,7 +365,8 @@
 
 	function Initialize()
 		--InitializeTrial()
-		--task.wait(1)
+		ResetPlayerTeams()
+		task.wait(1)
 		GenEggStats()
 		task.wait(1)
 		Library:Notify(string.format('Script Loaded in %.2f second(s)!', tick() - StartTick), 5)
@@ -451,6 +463,53 @@
 			settings['AutoRaid']['ToggleAllRaids'] = value
 			SaveConfig()
 		end
+	})
+
+	AutoRaid:AddToggle('equipTeamsOnRaid', {
+		Text = 'Equip Teams',
+		Default = settings['AutoRaid']['EnableTeams'],
+		Tooltip = 'Auto Equip Teams',
+
+		Callback = function(value)
+			settings['AutoRaid']['EnableTeams'] = value
+			SaveConfig()
+		end
+	})
+
+	local raidTeamDrop1 = AutoRaid:AddDropdown('raidTeamDrop1', {
+		Values = playerTeamsNames,
+		Default = settings['AutoRaid']['Team1'], -- number index of the value / string
+		Multi = false, -- true / false, allows multiple choices to be selected
+
+		Text = 'Equip Team on Raid',
+
+		Callback = function(value)
+			settings['AutoRaid']['Team1'] = value
+			SaveConfig()
+		end
+	})
+
+	local raidTeamDrop2 = AutoRaid:AddDropdown('raidTeamDrop2', {
+		Values = playerTeamsNames,
+		Default = settings['AutoRaid']['Team2'], -- number index of the value / string
+		Multi = false, -- true / false, allows multiple choices to be selected
+
+		Text = 'Equip Team after Raid',
+
+		Callback = function(value)
+			settings['AutoRaid']['Team2'] = value
+			SaveConfig()
+		end
+	})
+
+	AutoRaid:AddButton({
+		Text = 'Refresh Teams',
+		Func = function()
+			ResetPlayerTeams()
+			raidTeamDrop1:SetValues(playerTeamsNames)
+			raidTeamDrop2:SetValues(playerTeamsNames)
+		end,
+		DoubleClick = false
 	})
 
 	local SelectPositionButton = AutoRaid:AddButton({
@@ -639,12 +698,21 @@
 		end
 	})
 
+	local Testing = Tabs['Main']:AddRightGroupbox('Testing')
+	local minLabel = Testing:AddLabel('Min: LOADING')
+	local forcefieldLabel = Testing:AddLabel('Forcefield: LOADING')
+	local enemyNameLabel = Testing:AddLabel('Enemy: LOADING')
+	local enemiesLabel = Testing:AddLabel('Enemies: LOADING')
+
 	Library.ToggleKeybind = Options.MenuKeybind
 
 	coroutine.resume(coroutine.create(function()
-		while task.wait(5) do
+		while task.wait(1) do
 			local opens = tostring(PlayerGui.MainGui.Hatch.Buttons.Open.Price.Text):match('(%d+)')
 			MAX_SUMMON = opens
+
+			minLabel:SetText(string.format('Min: %s', tostring(os.date("%M"))))
+			forcefieldLabel:SetText(string.format('Forcefield: %s', tostring(Workspace.Worlds['Raid'].RaidData.Forcefield.Value)))
 		end
 	end))
 
@@ -657,6 +725,9 @@
 					local enemies = Workspace.Worlds['Raid'].Enemies
 
 					for _, enemy in ipairs(enemies:GetChildren()) do
+						enemyNameLabel:SetText(string.format('Enemy: %s', tostring(enemy.Name)))
+						enemiesLabel:SetText(string.format('Enemies: %s', tostring(raidData.Enemies.Value)))
+
 						if raidData.Enemies.Value == 0 and raidData.Forcefield.Value == false and enemy.Name == raidData.BossId.Value then
 							pcall(function()
 								character.HumanoidRootPart.CFrame = enemy.HumanoidRootPart.CFrame
@@ -682,7 +753,7 @@
 
 								retreat()
 							end)
-						elseif raidData.Enemies.Value ~= 0 and enemy.Name ~= raidData.BossId.Value then
+						elseif raidData.Enemies.Value ~= 0 and raidData.Forcefield.Value == true and enemy.Name ~= raidData.BossId.Value then
 							pcall(function()
 								character.HumanoidRootPart.CFrame = enemy.HumanoidRootPart.CFrame
 								movePetsToPlayer()
@@ -754,9 +825,19 @@
 						if raidWorlds[worldName] == true or settings['AutoRaid']['ToggleAllRaids'] then
 							local min = os.date("%M")
 
-							if (settings['AutoRaid']['Enabled'] and min == '14') or (settings['AutoRaid']['Enabled'] and min == '44') then
+							if (min == '14') or (min == '44') then
 								for _, v in pairs(getconnections(yesButton.Activated)) do
 									v:Fire()
+
+									if settings['AutoRaid']['EnableTeams'] and tostring(settings['AutoRaid']['Team1']) ~= '0' then
+										for teamName, teamButton in pairs(playerTeams) do
+											if teamName == settings['AutoRaid']['Team1'] then
+												for i, button in pairs(getconnections(teamButton.Activated)) do
+													button:Fire()
+												end
+											end
+										end
+									end
 
 									repeat
 										task.wait()
@@ -792,6 +873,16 @@
 					if PlayerGui.RaidGui.RaidResults.Visible == true and #enemies == 0 then
 						for _, v in pairs(getconnections(confirmRaidButton.Activated)) do
 							v:Fire()
+
+							if settings['AutoRaid']['EnableTeams'] and tostring(settings['AutoRaid']['Team2']) ~= '0' then
+								for teamName, teamButton in pairs(playerTeams) do
+									if teamName == settings['AutoRaid']['Team2'] then
+										for i, button in pairs(getconnections(teamButton.Activated)) do
+											button:Fire()
+										end
+									end
+								end
+							end
 
 							repeat
 								pcall(function()
