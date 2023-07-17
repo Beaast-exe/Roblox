@@ -43,7 +43,10 @@
 			['DailyGifts'] = false,
 			['Merchant'] = false
 		},
-		menuKeybind = 'LeftShift',
+		['Keybinds'] = {
+			['menuKeybind'] = 'LeftShift',
+			['AutoFarm'] = 'Unknown'
+		},
 		watermark = false,
 		webhookLink = 'Webhook Link',
 		webhookMentionId = 'Mention ID'
@@ -535,6 +538,26 @@
 		end
 	end))
 
+	local Keybinds = Tabs['Main']:AddRightGroupbox('Keybinds')
+	
+	Keybinds:AddLabel('Auto Farm Keybind'):AddKeyPicker('farmKeybind', {
+		Default = settings['Keybinds']['AutoFarm'],
+		NoUI = true,
+		Text = 'Auto Farm Keybind',
+
+		Callback = function(value)
+			Toggles['autoFarmAll']:SetValue(value)
+			SaveConfig()
+		end,
+
+		ChangedCallback = function(value)
+			settings['Keybinds']['AutoFarm'] = Options.farmKeybind.Value
+			SaveConfig()
+		end
+	})
+
+	Library.ToggleKeybind = Options.MenuKeybind
+
 	coroutine.resume(coroutine.create(function()
 		while task.wait(5) do
 			local opens = tostring(PlayerGui.MainGui.Hatch.Buttons.Open.Price.Text):match('(%d+)')
@@ -565,26 +588,6 @@
 						task.wait(0.005)
 						VirtualInputManager:SendKeyEvent(false, 'R', false, nil)
 					end
-
-
-					--[[
-					local target = getClosestEnemy()
-
-					if target then
-						repeat
-							if target ~= nil and target:FindFirstChild('Attackers') and table.find(playerWorldEnemies, target) then
-								VirtualInputManager:SendKeyEvent(true, 'R', false, game)
-								BINDABLE.SendPet:Fire(target, true)
-							end
-							task.wait()
-						until Library.Unloaded
-						or target ~= getClosestEnemy()
-						or target == nil
-						or not settings['AutoFarm']['AttackAll']
-						or target:FindFirstChild('Attackers') == nil
-						or table.find(playerWorldEnemies, target) == nil
-					end
-					]]--
 				end
 			end
 		end)
@@ -697,12 +700,12 @@
 	-- I set NoUI so it does not show up in the keybinds menu
 	MenuGroup:AddButton('Unload', function() Library:Unload() end)
 	MenuGroup:AddLabel('Menu bind'):AddKeyPicker('MenuKeybind', {
-		Default = settings.menuKeybind,
+		Default = settings['Keybinds']['menuKeybind'],
 		NoUI = true,
 		Text = 'Menu keybind',
 
 		ChangedCallback = function(value)
-			settings.menuKeybind = Options.MenuKeybind.Value
+			settings['Keybinds']['menuKeybind'] = Options.MenuKeybind.Value
 			SaveConfig()
 		end
 	})
