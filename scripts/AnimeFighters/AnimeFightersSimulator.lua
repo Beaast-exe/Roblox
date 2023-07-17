@@ -657,7 +657,7 @@
 					local enemies = Workspace.Worlds['Raid'].Enemies
 
 					for _, enemy in ipairs(enemies:GetChildren()) do
-						if raidData.Enemies.Value ~= 0 and enemy.Name ~= raidData.BossId.Value then
+						if raidData.Enemies.Value == 0 and raidData.Forcefield.Value == false and enemy.Name == raidData.BossId.Value then
 							pcall(function()
 								character.HumanoidRootPart.CFrame = enemy.HumanoidRootPart.CFrame
 								movePetsToPlayer()
@@ -682,6 +682,32 @@
 
 								retreat()
 							end)
+						elseif raidData.Enemies.Value ~= 0 and enemy.Name ~= raidData.BossId.Value then
+							pcall(function()
+								character.HumanoidRootPart.CFrame = enemy.HumanoidRootPart.CFrame
+								movePetsToPlayer()
+
+								repeat
+									if enemy:FindFirstChild('Attackers') then
+										if settings['AutoFarm']['AttackAll'] then
+											task.wait(0.1)
+										else
+											BINDABLE.SendPet:Fire(enemy, true)
+										end
+									end
+									task.wait()
+								until Library.Unloaded
+								or enemy:FindFirstChild('HumanoidRootPart') == nil
+								or enemy:FindFirstChild('Health') == nil
+								or enemy:FindFirstChild('Attackers') == nil
+								or player.World.Value ~= 'Raid'
+								or not settings['AutoRaid']['Enabled']
+								or raidData.Enemies.Value == 0
+								or enemy.Health.Value <= 0
+
+								retreat()
+							end)
+						--[[
 						elseif raidData.Forcefield.Value == false and raidData.Enemies.Value == 0 and enemy.Name == raidData.BossId.Value then
 							pcall(function()
 								character.Humanoid.CFrame = enemy.HumanoidRootPart.CFrame
@@ -708,6 +734,7 @@
 
 								retreat()
 							end)
+						]]--
 						end
 					end
 				end
