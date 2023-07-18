@@ -151,6 +151,8 @@
 	local PET_TEXT_FORMAT = '%s (%s) | UID: %s | Level: %s'
 	local selectedFuse
 	local selectedDefenseWorld
+	
+	local minute = os.date("%M")
 
 	local towerFarm
 	local stopTrial
@@ -815,6 +817,13 @@
 				task.wait()
 			end
 		end)
+		
+		task.spawn(function()
+			while not Library.Unloaded do
+				minute = os.date("%M")
+				task.wait(0.1)
+			end
+		end)
 
 		-- // AUTORAID TP
 		task.spawn(function()
@@ -824,14 +833,16 @@
 					if currentRaidMap then
 						local worldName = Workspace.Worlds['Raid'].RaidData.CurrentWorld.Value
 						
-						if raidWorlds[worldName] == true or settings['AutoRaid']['ToggleAllRaids'] then
-							local min = os.date("%M")
-
-							if (min == '14') or (min == '44') then
+						if settings['AutoRaid']['ToggleAllRaids'] then
+							if minute == '14' or minute == '44' then
 								for _, v in pairs(getconnections(yesButton.Activated)) do
+									print('teste')
 									v:Fire()
 
-									if settings['AutoRaid']['EnableTeams'] and tostring(settings['AutoRaid']['Team1']) ~= '0' then
+									repeat
+										task.wait()
+										
+										if settings['AutoRaid']['EnableTeams'] and tostring(settings['AutoRaid']['Team1']) ~= '0' then
 										for teamName, teamButton in pairs(playerTeams) do
 											if teamName == settings['AutoRaid']['Team1'] then
 												for i, button in pairs(getconnections(teamButton.Activated)) do
@@ -840,18 +851,14 @@
 											end
 										end
 									end
-
-									repeat
-										task.wait()
-										min = os.date("%M")
-									until min == '15' or min =='45' or Library.Unloaded or not settings['AutoRaid']['ToggleAllRaids']
+									until minute == '15' or minute =='45' or Library.Unloaded or not settings['AutoRaid']['Enabled']
 									--until min == '15' or min =='45' or Library.Unloaded or not raidWorlds[worldName]
 								end
 							else
 								repeat
 									task.wait()
-									min = os.date("%M")
-								until min == '14' or min =='44' or Library.Unloaded or not settings['AutoRaid']['ToggleAllRaids']
+									minute = os.date("%M")
+								until minute == '14' or minute =='44' or Library.Unloaded or not settings['AutoRaid']['Enabled']
 								--until min == '14' or min =='44' or Library.Unloaded or not raidWorlds[worldName]
 							end
 						end
@@ -870,19 +877,9 @@
 				if player.World.Value == 'Raid' then
 					local enemies = Workspace.Worlds['Raid'].Enemies:GetChildren()
 
-					if PlayerGui.RaidGui.RaidResults.Visible == true and #enemies == 0 then
+					if PlayerGui.RaidGui.RaidResults.Visible == true then
 						for _, v in pairs(getconnections(confirmRaidButton.Activated)) do
 							v:Fire()
-
-							if settings['AutoRaid']['EnableTeams'] and tostring(settings['AutoRaid']['Team2']) ~= '0' then
-								for teamName, teamButton in pairs(playerTeams) do
-									if teamName == settings['AutoRaid']['Team2'] then
-										for i, button in pairs(getconnections(teamButton.Activated)) do
-											button:Fire()
-										end
-									end
-								end
-							end
 
 							repeat
 								pcall(function()
@@ -892,8 +889,17 @@
 									task.wait(1)
 
 									debounce = false
+									
+									if settings['AutoRaid']['EnableTeams'] and tostring(settings['AutoRaid']['Team2']) ~= '0' then
+										for teamName, teamButton in pairs(playerTeams) do
+											if teamName == settings['AutoRaid']['Team2'] then
+												for i, button in pairs(getconnections(teamButton.Activated)) do
+													button:Fire()
+												end
+											end
+										end
+									end
 								end)
-								
 							until PlayerGui.RaidGui.RaidResults.Visible == false or Library.Unloaded or not settings['AutoRaid']['Enabled']
 						end
 					end
