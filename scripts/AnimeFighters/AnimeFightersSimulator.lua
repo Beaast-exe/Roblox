@@ -320,7 +320,7 @@
 					if Distance <= enemiesRange and Distance < ClosestDistance then
 						if targetEnemy.Name == 'Chest' and settings['AutoFarm']['IgnoreChests'] then
 							Closest = nil
-							ClosestDistance = nil
+							ClosestDistance = math.huge
 						else
 							Closest = targetEnemy
 							ClosestDistance = Distance
@@ -329,7 +329,7 @@
 				end
 			end
 
-			if Closest == nil then ClosestDistance = nil end
+			if Closest == nil then ClosestDistance = math.huge end
 
 			return Closest, ClosestDistance
 		end
