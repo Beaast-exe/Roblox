@@ -864,8 +864,6 @@
 
 		-- // RETURN FROM RAID
 		task.spawn(function()
-			local raidData = Workspace.Worlds['Raid'].RaidData
-			local enemies = Workspace.Worlds['Raid'].Enemies
 			local debounce = false
 
 			while not Library.Unloaded do
