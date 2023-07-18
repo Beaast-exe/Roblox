@@ -208,6 +208,7 @@
 		for k, v in pairs(PlayerGui.MainGui.Pets.TeamsList.Main.Scroll:GetChildren()) do
 			if v.Name == 'TeamTemplate' then
 				playerTeams[v.TeamName.Text] = v.Button
+				currentlyEquippedTeam = ''
 				if not table.find(playerTeamsNames, v.TeamName.Text) then table.insert(playerTeamsNames, v.TeamName.Text) end
 			end
 		end
@@ -729,7 +730,7 @@
 										if settings['AutoFarm']['AttackAll'] then
 											task.wait(0.1)
 										else
-											BINDABLE.SendPet:Fire(enemy, true)
+											BINDABLE.SendPet:Fire(enemy)
 										end
 									end
 									task.wait()
@@ -754,7 +755,7 @@
 										if settings['AutoFarm']['AttackAll'] then
 											task.wait(0.1)
 										else
-											BINDABLE.SendPet:Fire(enemy, true)
+											BINDABLE.SendPet:Fire(enemy)
 										end
 									end
 									task.wait()
@@ -795,27 +796,29 @@
 						if settings['AutoRaid']['ToggleAllRaids'] then
 							if minute == '14' or minute == '44' then
 								for _, v in pairs(getconnections(yesButton.Activated)) do
-									v:Fire()
+									if _ == 1 then
+										v:Fire()
 
-									repeat
-										task.wait()
-
-										if settings['AutoRaid']['EnableTeams'] and tostring(settings['AutoRaid']['Team1']) ~= '0' then
-											for teamName, teamButton in pairs(playerTeams) do
-												if teamName == settings['AutoRaid']['Team1'] then
-													for i, button in pairs(getconnections(teamButton.Activated)) do
-														if i == 1 then
-															if currentlyEquippedTeam ~= settings['AutoRaid']['Team1'] then
-																currentlyEquippedTeam = settings['AutoRaid']['Team1']
-																button:Fire()
+										repeat
+											task.wait()
+	
+											if settings['AutoRaid']['EnableTeams'] and tostring(settings['AutoRaid']['Team1']) ~= '0' then
+												for teamName, teamButton in pairs(playerTeams) do
+													if teamName == settings['AutoRaid']['Team1'] then
+														for i, button in pairs(getconnections(teamButton.Activated)) do
+															if i == 1 then
+																if currentlyEquippedTeam ~= settings['AutoRaid']['Team1'] then
+																	currentlyEquippedTeam = settings['AutoRaid']['Team1']
+																	button:Fire()
+																end
 															end
 														end
 													end
 												end
 											end
-										end
-									until minute == '15' or minute =='45' or Library.Unloaded or not settings['AutoRaid']['Enabled']
-									--until min == '15' or min =='45' or Library.Unloaded or not raidWorlds[worldName]
+										until minute == '15' or minute =='45' or Library.Unloaded or not settings['AutoRaid']['Enabled']
+										--until min == '15' or min =='45' or Library.Unloaded or not raidWorlds[worldName]
+									end
 								end
 							else
 								repeat
@@ -834,41 +837,37 @@
 
 		-- // RETURN FROM RAID
 		task.spawn(function()
-			local debounce = false
-
 			while not Library.Unloaded do
 				if player.World.Value == 'Raid' then
 					local enemies = Workspace.Worlds['Raid'].Enemies:GetChildren()
 
 					if PlayerGui.RaidGui.RaidResults.Visible == true then
 						for _, v in pairs(getconnections(confirmRaidButton.Activated)) do
-							v:Fire()
+							if _ == 1 then
+								v:Fire()
 
-							repeat
-								pcall(function()
-									debounce = true
-									table.clear(sentDebounce)
-									tp(settings['AutoRaid']['BackWorld'], stringToCFrame(settings['AutoRaid']['BackPosition']))
-									task.wait(1)
+								repeat
+									pcall(function()
+										tp(settings['AutoRaid']['BackWorld'], stringToCFrame(settings['AutoRaid']['BackPosition']))
+										task.wait(1)							
 
-									debounce = false
-									
-									if settings['AutoRaid']['EnableTeams'] and tostring(settings['AutoRaid']['Team2']) ~= '0' then
-										for teamName, teamButton in pairs(playerTeams) do
-											if teamName == settings['AutoRaid']['Team2'] then
-												for i, button in pairs(getconnections(teamButton.Activated)) do
-													if i == 1 then
-														if currentlyEquippedTeam ~= settings['AutoRaid']['Team2'] then
-															currentlyEquippedTeam = settings['AutoRaid']['Team2']
-															button:Fire()
+										if settings['AutoRaid']['EnableTeams'] and tostring(settings['AutoRaid']['Team2']) ~= '0' then
+											for teamName, teamButton in pairs(playerTeams) do
+												if teamName == settings['AutoRaid']['Team2'] then
+													for i, button in pairs(getconnections(teamButton.Activated)) do
+														if i == 1 then
+															if currentlyEquippedTeam ~= settings['AutoRaid']['Team2'] then
+																currentlyEquippedTeam = settings['AutoRaid']['Team2']
+																button:Fire()
+															end
 														end
 													end
 												end
 											end
 										end
-									end
-								end)
-							until PlayerGui.RaidGui.RaidResults.Visible == false or Library.Unloaded or not settings['AutoRaid']['Enabled']
+									end)
+								until PlayerGui.RaidGui.RaidResults.Visible == false or Library.Unloaded or not settings['AutoRaid']['Enabled']
+							end
 						end
 					end
 				end
@@ -876,25 +875,6 @@
 				task.wait()
 			end
 		end)
-
-		--[[
-		task.spawn(function()
-			while task.wait(1) and not Library.Unloaded do
-				for teamName, teamButton in pairs(playerTeams) do
-					if teamName == settings['AutoRaid']['Team2'] then
-						for i, v in pairs(getconnections(teamButton.Activated)) do
-							if i == 1 then
-								if currentlyEquippedTeam ~= settings['AutoRaid']['Team2'] then
-									currentlyEquippedTeam = settings['AutoRaid']['Team2']
-									v:Fire()
-								end
-							end
-						end
-					end
-				end
-			end
-		end)
-		]]--
 
 		-- // AUTOFARM ALL
 		task.spawn(function()
@@ -905,12 +885,12 @@
 						if lastClosest == nil then lastClosest = Closest end
 
 						if lastClosest == Closest then
-							BINDABLE.SendPet:Fire(Closest, true)
+							BINDABLE.SendPet:Fire(Closest)
 						else
 							VirtualInputManager:SendKeyEvent(true, 'R', false, nil)
 							task.wait(0.005)
 							VirtualInputManager:SendKeyEvent(false, 'R', false, nil)
-							BINDABLE.SendPet:Fire(Closest, true)
+							BINDABLE.SendPet:Fire(Closest)
 							lastClosest = Closest
 						end
 					else
