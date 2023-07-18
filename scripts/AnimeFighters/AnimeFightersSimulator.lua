@@ -442,7 +442,7 @@
 		end
 	})
 
-	local AutoRaid = Tabs['Main']:AddLeftGroupbox('Auto Raid')
+	local AutoRaid = Tabs['Main']:AddRightGroupbox('Auto Raid')
 	AutoRaid:AddToggle('enableAutoRaid', {
 		Text = 'Auto Raid',
 		Default = settings['AutoRaid']['Enabled'],
@@ -698,11 +698,13 @@
 		end
 	})
 
+	--[[
 	local Testing = Tabs['Main']:AddRightGroupbox('Testing')
 	local minLabel = Testing:AddLabel('Min: LOADING')
 	local forcefieldLabel = Testing:AddLabel('Forcefield: LOADING')
 	local enemyNameLabel = Testing:AddLabel('Enemy: LOADING')
 	local enemiesLabel = Testing:AddLabel('Enemies: LOADING')
+	]]
 
 	Library.ToggleKeybind = Options.MenuKeybind
 
@@ -711,8 +713,8 @@
 			local opens = tostring(PlayerGui.MainGui.Hatch.Buttons.Open.Price.Text):match('(%d+)')
 			MAX_SUMMON = opens
 
-			minLabel:SetText(string.format('Min: %s', tostring(os.date("%M"))))
-			forcefieldLabel:SetText(string.format('Forcefield: %s', tostring(Workspace.Worlds['Raid'].RaidData.Forcefield.Value)))
+			--minLabel:SetText(string.format('Min: %s', tostring(os.date("%M"))))
+			--forcefieldLabel:SetText(string.format('Forcefield: %s', tostring(Workspace.Worlds['Raid'].RaidData.Forcefield.Value)))
 		end
 	end))
 
@@ -725,8 +727,8 @@
 					local enemies = Workspace.Worlds['Raid'].Enemies
 
 					for _, enemy in ipairs(enemies:GetChildren()) do
-						enemyNameLabel:SetText(string.format('Enemy: %s', tostring(enemy.Name)))
-						enemiesLabel:SetText(string.format('Enemies: %s', tostring(raidData.Enemies.Value)))
+						--enemyNameLabel:SetText(string.format('Enemy: %s', tostring(enemy.Name)))
+						--enemiesLabel:SetText(string.format('Enemies: %s', tostring(raidData.Enemies.Value)))
 
 						if raidData.Enemies.Value == 0 and raidData.Forcefield.Value == false and enemy.Name == raidData.BossId.Value then
 							pcall(function()
