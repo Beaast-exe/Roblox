@@ -730,7 +730,7 @@
 										if settings['AutoFarm']['AttackAll'] then
 											task.wait(0.1)
 										else
-											BINDABLE.SendPet:Fire(enemy)
+											BINDABLE.SendPet:Fire(enemy, true)
 										end
 									end
 									task.wait()
@@ -755,7 +755,7 @@
 										if settings['AutoFarm']['AttackAll'] then
 											task.wait(0.1)
 										else
-											BINDABLE.SendPet:Fire(enemy)
+											BINDABLE.SendPet:Fire(enemy, true)
 										end
 									end
 									task.wait()
@@ -800,7 +800,7 @@
 										v:Fire()
 
 										repeat
-											task.wait()
+											task.wait(1)
 	
 											if settings['AutoRaid']['EnableTeams'] and tostring(settings['AutoRaid']['Team1']) ~= '0' then
 												for teamName, teamButton in pairs(playerTeams) do
@@ -885,12 +885,12 @@
 						if lastClosest == nil then lastClosest = Closest end
 
 						if lastClosest == Closest then
-							BINDABLE.SendPet:Fire(Closest)
+							BINDABLE.SendPet:Fire(Closest, true)
 						else
 							VirtualInputManager:SendKeyEvent(true, 'R', false, nil)
 							task.wait(0.005)
 							VirtualInputManager:SendKeyEvent(false, 'R', false, nil)
-							BINDABLE.SendPet:Fire(Closest)
+							BINDABLE.SendPet:Fire(Closest, true)
 							lastClosest = Closest
 						end
 					else
