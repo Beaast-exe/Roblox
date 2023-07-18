@@ -124,6 +124,7 @@
 
 	local playerTeamsNames = {}
 	local playerTeams = {}
+	local currentlyEquippedTeam = ''
 
 	local mobs = {}
 	local eggData = {}
@@ -700,23 +701,12 @@
 		end
 	})
 
-	--[[
-	local Testing = Tabs['Main']:AddRightGroupbox('Testing')
-	local minLabel = Testing:AddLabel('Min: LOADING')
-	local forcefieldLabel = Testing:AddLabel('Forcefield: LOADING')
-	local enemyNameLabel = Testing:AddLabel('Enemy: LOADING')
-	local enemiesLabel = Testing:AddLabel('Enemies: LOADING')
-	]]
-
 	Library.ToggleKeybind = Options.MenuKeybind
 
 	coroutine.resume(coroutine.create(function()
 		while task.wait(1) do
 			local opens = tostring(PlayerGui.MainGui.Hatch.Buttons.Open.Price.Text):match('(%d+)')
 			MAX_SUMMON = opens
-
-			--minLabel:SetText(string.format('Min: %s', tostring(os.date("%M"))))
-			--forcefieldLabel:SetText(string.format('Forcefield: %s', tostring(Workspace.Worlds['Raid'].RaidData.Forcefield.Value)))
 		end
 	end))
 
@@ -729,9 +719,6 @@
 					local enemies = Workspace.Worlds['Raid'].Enemies
 
 					for _, enemy in ipairs(enemies:GetChildren()) do
-						--enemyNameLabel:SetText(string.format('Enemy: %s', tostring(enemy.Name)))
-						--enemiesLabel:SetText(string.format('Enemies: %s', tostring(raidData.Enemies.Value)))
-
 						if raidData.Enemies.Value == 0 and raidData.Forcefield.Value == false and enemy.Name == raidData.BossId.Value then
 							pcall(function()
 								character.HumanoidRootPart.CFrame = enemy.HumanoidRootPart.CFrame
@@ -782,34 +769,6 @@
 
 								retreat()
 							end)
-						--[[
-						elseif raidData.Forcefield.Value == false and raidData.Enemies.Value == 0 and enemy.Name == raidData.BossId.Value then
-							pcall(function()
-								character.Humanoid.CFrame = enemy.HumanoidRootPart.CFrame
-								movePetsToPlayer()
-
-								repeat
-									if enemy:FindFirstChild("Attackers") then
-                                        if settings['AutoFarm']['AttackAll'] then
-											task.wait(0.1)
-										else
-											BINDABLE.SendPet:Fire(enemy, true)
-										end
-                                    end
-									task.wait()
-								until Library.Unloaded
-                                or enemy:FindFirstChild("HumanoidRootPart") == nil
-                                or enemy:FindFirstChild("Health") == nil
-                                or enemy:FindFirstChild("Attackers") == nil
-                                or player.World.Value ~= "Raid"
-                                or not settings['AutoRaid']['Enabled']
-                                or raidData.Forcefield.Value == true
-                                or raidData.Enemies.Value > 0
-                                or enemy.Health.Value <= 0
-
-								retreat()
-							end)
-						]]--
 						end
 					end
 				end
@@ -836,21 +795,25 @@
 						if settings['AutoRaid']['ToggleAllRaids'] then
 							if minute == '14' or minute == '44' then
 								for _, v in pairs(getconnections(yesButton.Activated)) do
-									print('teste')
 									v:Fire()
 
 									repeat
 										task.wait()
-										
+
 										if settings['AutoRaid']['EnableTeams'] and tostring(settings['AutoRaid']['Team1']) ~= '0' then
-										for teamName, teamButton in pairs(playerTeams) do
-											if teamName == settings['AutoRaid']['Team1'] then
-												for i, button in pairs(getconnections(teamButton.Activated)) do
-													button:Fire()
+											for teamName, teamButton in pairs(playerTeams) do
+												if teamName == settings['AutoRaid']['Team1'] then
+													for i, button in pairs(getconnections(teamButton.Activated)) do
+														if i == 1 then
+															if currentlyEquippedTeam ~= settings['AutoRaid']['Team1'] then
+																currentlyEquippedTeam = settings['AutoRaid']['Team1']
+																button:Fire()
+															end
+														end
+													end
 												end
 											end
 										end
-									end
 									until minute == '15' or minute =='45' or Library.Unloaded or not settings['AutoRaid']['Enabled']
 									--until min == '15' or min =='45' or Library.Unloaded or not raidWorlds[worldName]
 								end
@@ -894,7 +857,12 @@
 										for teamName, teamButton in pairs(playerTeams) do
 											if teamName == settings['AutoRaid']['Team2'] then
 												for i, button in pairs(getconnections(teamButton.Activated)) do
-													button:Fire()
+													if i == 1 then
+														if currentlyEquippedTeam ~= settings['AutoRaid']['Team2'] then
+															currentlyEquippedTeam = settings['AutoRaid']['Team2']
+															button:Fire()
+														end
+													end
 												end
 											end
 										end
@@ -908,6 +876,25 @@
 				task.wait()
 			end
 		end)
+
+		--[[
+		task.spawn(function()
+			while task.wait(1) and not Library.Unloaded do
+				for teamName, teamButton in pairs(playerTeams) do
+					if teamName == settings['AutoRaid']['Team2'] then
+						for i, v in pairs(getconnections(teamButton.Activated)) do
+							if i == 1 then
+								if currentlyEquippedTeam ~= settings['AutoRaid']['Team2'] then
+									currentlyEquippedTeam = settings['AutoRaid']['Team2']
+									v:Fire()
+								end
+							end
+						end
+					end
+				end
+			end
+		end)
+		]]--
 
 		-- // AUTOFARM ALL
 		task.spawn(function()
