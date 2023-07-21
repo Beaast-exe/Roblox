@@ -48,8 +48,6 @@
 			['EnableFarmTeam'] = false
 		},
 		['AutoStar'] = {
-			--['Enabled'] = false,
-			--['EnabledMultiOpen'] = false,
 			['SelectedStar'] = 'Z Star'
 		},
 		['Misc'] = {
@@ -983,6 +981,42 @@
 							task.wait(0.005)
 							VirtualInputManager:SendKeyEvent(false, 'R', false, nil)
 							lastClosest = Closest
+
+							if Closest.Name == 'Chest' and settings['Teams']['EnableChestTeam'] and tostring(settings['Teams']['AutoFarmChests']) ~= '0' then
+								for teamName, teamButton in pairs(playerTeams) do
+									if teamName == settings['Teams']['AutoFarmChests'] then
+										for i, button in pairs(getconnections(teamButton.Activated)) do
+											if i == 1 then
+												if currentlyEquippedTeam ~= settings['Teams']['AutoFarmChests'] then
+													currentlyEquippedTeam = settings['Teams']['AutoFarmChests']
+													button:Fire()
+													task.wait(1)
+												end
+
+												BINDABLE.SendPet:Fire(Closest, true)
+											end
+										end
+									end
+								end
+							elseif Closest.Name ~= 'Chest' and settings['Teams']['EnableFarmTeam'] and tostring(settings['Teams']['AutoFarmAll']) ~= '0' then
+								for teamName, teamButton in pairs(playerTeams) do
+									if teamName == settings['Teams']['AutoFarmAll'] then
+										for i, button in pairs(getconnections(teamButton.Activated)) do
+											if i == 1 then
+												if currentlyEquippedTeam ~= settings['Teams']['AutoFarmAll'] then
+													currentlyEquippedTeam = settings['Teams']['AutoFarmAll']
+													button:Fire()
+													task.wait(1)
+												end
+
+												BINDABLE.SendPet:Fire(Closest, true)
+											end
+										end
+									end
+								end
+							else
+								BINDABLE.SendPet:Fire(Closest, true)
+							end
 							--BINDABLE.SendPet:Fire(Closest, true)
 						end
 					else
