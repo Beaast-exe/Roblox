@@ -507,46 +507,6 @@
 		DoubleClick = false
 	})
 
-	local AutoStar = Tabs['Main']:AddLeftGroupbox('Auto Star')
-
-	AutoStar:AddDropdown('starDropdown', {
-		Values = bstEggs,
-		Default = settings['AutoStar']['SelectedStar'], -- number index of the value / string
-		Multi = false, -- true / false, allows multiple choices to be selected
-
-		Text = 'Selected Star',
-		Tooltip = 'Star to open and max open', -- Information shown when you hover over the dropdown
-
-		Callback = function(value)
-			settings['AutoStar']['SelectedStar'] = value
-			SaveConfig()
-		end
-	})
-
-	AutoStar:AddToggle('autoStar', {
-		Text = 'Auto Star',
-		Default = false,
-		Tooltip = 'Auto claim Daily Gifts',
-
-		Callback = function(value)
-			enabledAutoStar = value
-			SaveConfig()
-		end
-	})
-
-	AutoStar:AddToggle('autoMaxOpen', {
-		Text = 'Auto Max Open',
-		Default = false,
-		Tooltip = 'Auto Max Open',
-
-		Callback = function(value)
-			enabledMultiOpen = value
-			SaveConfig()
-		end
-	})
-
-	AutoStar:AddLabel('Disable before teleporting')
-
 	local Teams = Tabs['Main']:AddLeftGroupbox('Teams')
 
 	local raidTeamDrop1 = Teams:AddDropdown('raidTeamDrop1', {
@@ -623,7 +583,7 @@
 		end
 	})
 
-	AutoRaid:AddButton({
+	Teams:AddButton({
 		Text = 'Refresh Teams',
 		Func = function()
 			ResetPlayerTeams()
@@ -634,6 +594,46 @@
 		end,
 		DoubleClick = false
 	})
+
+	local AutoStar = Tabs['Main']:AddRightGroupbox('Auto Star')
+
+	AutoStar:AddDropdown('starDropdown', {
+		Values = bstEggs,
+		Default = settings['AutoStar']['SelectedStar'], -- number index of the value / string
+		Multi = false, -- true / false, allows multiple choices to be selected
+
+		Text = 'Selected Star',
+		Tooltip = 'Star to open and max open', -- Information shown when you hover over the dropdown
+
+		Callback = function(value)
+			settings['AutoStar']['SelectedStar'] = value
+			SaveConfig()
+		end
+	})
+
+	AutoStar:AddToggle('autoStar', {
+		Text = 'Auto Star',
+		Default = false,
+		Tooltip = 'Auto claim Daily Gifts',
+
+		Callback = function(value)
+			enabledAutoStar = value
+			SaveConfig()
+		end
+	})
+
+	AutoStar:AddToggle('autoMaxOpen', {
+		Text = 'Auto Max Open',
+		Default = false,
+		Tooltip = 'Auto Max Open',
+
+		Callback = function(value)
+			enabledMultiOpen = value
+			SaveConfig()
+		end
+	})
+
+	AutoStar:AddLabel('Disable before teleporting')
 
 	local Claims = Tabs['Main']:AddRightGroupbox('Claims')
 
