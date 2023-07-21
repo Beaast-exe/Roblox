@@ -36,10 +36,16 @@
 			['BackPosition'] = '7656.22852, -180.359406, -7856.69971, 1, 3.68046464e-08, 3.72713606e-14, -3.68046464e-08, 1, 5.18453689e-08, -3.53632088e-14, -5.18453689e-08, 1',
 			['BackWorld'] = 'OPWano',
 			['ToggleAllRaids'] = false,
-			['Team1'] = 1,
-			['Team2'] = 1,
 			['EnableTeams'] = false,
 			['raidWorlds'] = {}
+		},
+		['Teams'] = {
+			['AutoFarmAll'] = 1,
+			['AutoFarmChests'] = 1,
+			['RaidInside'] = 1,
+			['RaidAfter'] = 1,
+			['EnableChestTeam'] = false,
+			['EnableFarmTeam'] = false
 		},
 		['AutoStar'] = {
 			--['Enabled'] = false,
@@ -480,42 +486,6 @@
 		end
 	})
 
-	local raidTeamDrop1 = AutoRaid:AddDropdown('raidTeamDrop1', {
-		Values = playerTeamsNames,
-		Default = settings['AutoRaid']['Team1'], -- number index of the value / string
-		Multi = false, -- true / false, allows multiple choices to be selected
-
-		Text = 'Equip Team on Raid',
-
-		Callback = function(value)
-			settings['AutoRaid']['Team1'] = value
-			SaveConfig()
-		end
-	})
-
-	local raidTeamDrop2 = AutoRaid:AddDropdown('raidTeamDrop2', {
-		Values = playerTeamsNames,
-		Default = settings['AutoRaid']['Team2'], -- number index of the value / string
-		Multi = false, -- true / false, allows multiple choices to be selected
-
-		Text = 'Equip Team after Raid',
-
-		Callback = function(value)
-			settings['AutoRaid']['Team2'] = value
-			SaveConfig()
-		end
-	})
-
-	AutoRaid:AddButton({
-		Text = 'Refresh Teams',
-		Func = function()
-			ResetPlayerTeams()
-			raidTeamDrop1:SetValues(playerTeamsNames)
-			raidTeamDrop2:SetValues(playerTeamsNames)
-		end,
-		DoubleClick = false
-	})
-
 	local SelectPositionButton = AutoRaid:AddButton({
 		Text = 'Save Back Position',
 		Func = function()
@@ -578,6 +548,94 @@
 	})
 
 	AutoStar:AddLabel('Disable before teleporting')
+
+	local Teams = Tabs['Main']:AddLeftGroupbox('Teams')
+
+	local raidTeamDrop1 = Teams:AddDropdown('raidTeamDrop1', {
+		Values = playerTeamsNames,
+		Default = settings['Teams']['RaidInside'],
+		Multi = false,
+
+		Text = 'Equip Team on Raid',
+
+		Callback = function(value)
+			settings['Teams']['RaidInside'] = value
+			SaveConfig()
+		end
+	})
+
+	local raidTeamDrop2 = Teams:AddDropdown('raidTeamDrop2', {
+		Values = playerTeamsNames,
+		Default = settings['Teams']['RaidAfter'],
+		Multi = false, -- true / false, allows multiple choices to be selected
+
+		Text = 'Equip Team after Raid',
+
+		Callback = function(value)
+			settings['Teams']['RaidAfter'] = value
+			SaveConfig()
+		end
+	})
+
+	local autoFarmAllTeamDrop = Teams:AddDropdown('autoFarmAllTeamDrop', {
+		Values = playerTeamsNames,
+		Default = settings['Teams']['AutoFarmAll'],
+		Multi = false,
+
+		Text = 'Equip Team on autofarm all',
+
+		Callback = function(value)
+			settings['Teams']['AutoFarmAll'] = value
+			SaveConfig()
+		end
+	})
+
+	local autoFarmChestsTeamDrop = Teams:AddDropdown('autoFarmChestsTeamDrop', {
+		Values = playerTeamsNames,
+		Default = settings['Teams']['AutoFarmChests'],
+		Multi = false,
+
+		Text = 'Equip Team on autofarm chests',
+
+		Callback = function(value)
+			settings['Teams']['AutoFarmChests'] = value
+			SaveConfig()
+		end
+	})
+
+	Teams:AddToggle('equipTeamsOnChests', {
+		Text = 'Equip Team on AutoFarm Chest',
+		Default = settings['Teams']['EnableChestTeam'],
+		Tooltip = 'Auto Equip Teams on Auto Farm All Target Chest',
+
+		Callback = function(value)
+			settings['Teams']['EnableChestTeam'] = value
+			SaveConfig()
+		end
+	})
+
+	Teams:AddToggle('equipTeamsOnFarm', {
+		Text = 'Equip Team on AutoFarm All',
+		Default = settings['Teams']['EnableFarmTeam'],
+		Tooltip = 'Auto Equip Teams on Auto Farm All Target Enemy',
+
+		Callback = function(value)
+			settings['Teams']['EnableFarmTeam'] = value
+			SaveConfig()
+		end
+	})
+
+	AutoRaid:AddButton({
+		Text = 'Refresh Teams',
+		Func = function()
+			ResetPlayerTeams()
+			raidTeamDrop1:SetValues(playerTeamsNames)
+			raidTeamDrop2:SetValues(playerTeamsNames)
+			autoFarmAllTeamDrop:SetValues(playerTeamsNames)
+			autoFarmChestsTeamDrop:SetValues(playerTeamsNames)
+		end,
+		DoubleClick = false
+	})
 
 	local Claims = Tabs['Main']:AddRightGroupbox('Claims')
 
@@ -802,13 +860,13 @@
 										repeat
 											task.wait(1)
 	
-											if settings['AutoRaid']['EnableTeams'] and tostring(settings['AutoRaid']['Team1']) ~= '0' then
+											if settings['AutoRaid']['EnableTeams'] and tostring(settings['Teams']['RaidInside']) ~= '0' then
 												for teamName, teamButton in pairs(playerTeams) do
-													if teamName == settings['AutoRaid']['Team1'] then
+													if teamName == settings['Teams']['RaidInside'] then
 														for i, button in pairs(getconnections(teamButton.Activated)) do
 															if i == 1 then
-																if currentlyEquippedTeam ~= settings['AutoRaid']['Team1'] then
-																	currentlyEquippedTeam = settings['AutoRaid']['Team1']
+																if currentlyEquippedTeam ~= settings['Teams']['RaidInside'] then
+																	currentlyEquippedTeam = settings['Teams']['RaidInside']
 																	button:Fire()
 																end
 															end
@@ -851,13 +909,13 @@
 										tp(settings['AutoRaid']['BackWorld'], stringToCFrame(settings['AutoRaid']['BackPosition']))
 										task.wait(1)							
 
-										if settings['AutoRaid']['EnableTeams'] and tostring(settings['AutoRaid']['Team2']) ~= '0' then
+										if settings['AutoRaid']['EnableTeams'] and tostring(settings['Teams']['RaidAfter']) ~= '0' then
 											for teamName, teamButton in pairs(playerTeams) do
-												if teamName == settings['AutoRaid']['Team2'] then
+												if teamName == settings['Teams']['RaidAfter'] then
 													for i, button in pairs(getconnections(teamButton.Activated)) do
 														if i == 1 then
-															if currentlyEquippedTeam ~= settings['AutoRaid']['Team2'] then
-																currentlyEquippedTeam = settings['AutoRaid']['Team2']
+															if currentlyEquippedTeam ~= settings['Teams']['RaidAfter'] then
+																currentlyEquippedTeam = settings['Teams']['RaidAfter']
 																button:Fire()
 															end
 														end
@@ -885,13 +943,47 @@
 						if lastClosest == nil then lastClosest = Closest end
 
 						if lastClosest == Closest then
-							BINDABLE.SendPet:Fire(Closest, true)
+							--BINDABLE.SendPet:Fire(Closest, true)
+
+							if Closest.Name == 'Chest' and settings['Teams']['EnableChestTeam'] and tostring(settings['Teams']['AutoFarmChests']) ~= '0' then
+								for teamName, teamButton in pairs(playerTeams) do
+									if teamName == settings['Teams']['AutoFarmChests'] then
+										for i, button in pairs(getconnections(teamButton.Activated)) do
+											if i == 1 then
+												if currentlyEquippedTeam ~= settings['Teams']['AutoFarmChests'] then
+													currentlyEquippedTeam = settings['Teams']['AutoFarmChests']
+													button:Fire()
+													task.wait(0.1)
+													BINDABLE.SendPet:Fire(Closest, true)
+												end
+											end
+										end
+									end
+								end
+							elseif Closest.Name ~= 'Chest' and settings['Teams']['EnableFarmTeam'] and tostring(settings['Teams']['AutoFarmAll']) ~= '0' then
+								for teamName, teamButton in pairs(playerTeams) do
+									if teamName == settings['Teams']['AutoFarmAll'] then
+										for i, button in pairs(getconnections(teamButton.Activated)) do
+											if i == 1 then
+												if currentlyEquippedTeam ~= settings['Teams']['AutoFarmAll'] then
+													currentlyEquippedTeam = settings['Teams']['AutoFarmAll']
+													button:Fire()
+													task.wait(0.1)
+													BINDABLE.SendPet:Fire(Closest, true)
+												end
+											end
+										end
+									end
+								end
+							else
+								BINDABLE.SendPet:Fire(Closest, true)
+							end
 						else
 							VirtualInputManager:SendKeyEvent(true, 'R', false, nil)
 							task.wait(0.005)
 							VirtualInputManager:SendKeyEvent(false, 'R', false, nil)
-							BINDABLE.SendPet:Fire(Closest, true)
 							lastClosest = Closest
+							--BINDABLE.SendPet:Fire(Closest, true)
 						end
 					else
 						VirtualInputManager:SendKeyEvent(true, 'R', false, nil)
