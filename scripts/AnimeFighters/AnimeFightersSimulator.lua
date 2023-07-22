@@ -220,6 +220,7 @@
 
 	local yesButton = PlayerGui.MainGui.RaidTransport.Main.Yes
 	local confirmRaidButton = PlayerGui.RaidGui.RaidResults.Confirm
+	local unequipAllButton = PlayerGui.MainGui.Pets.UnequipButton.Button
 
 	local bstEggs = {}
 	local bstEggsTable = {
@@ -233,6 +234,15 @@
 		VirtualInputManager:SendKeyEvent(true, 'R', false, nil)
 		task.wait(0.005)
 		VirtualInputManager:SendKeyEvent(false, 'R', false, nil)
+	end
+
+	function unequipPets()
+		for i, button in pairs(getconnections(unequipAllButton.Activated)) do
+			if i == 1 then
+				button:Fire()
+				currentlyEquippedTeam = ''
+			end
+		end
 	end
 
 	function GenEggStats()
@@ -376,6 +386,10 @@
 		ResetPlayerTeams()
 		task.wait(1)
 		GenEggStats()
+		task.wait(1)
+		unequipAllButton.MouseButton1Click:Connect(function()
+			unequipPets()
+		end)
 		task.wait(1)
 		Library:Notify(string.format('Script Loaded in %.2f second(s)!', tick() - StartTick), 5)
 	end
@@ -932,6 +946,23 @@
 			end
 		end)
 
+		task.spawn(function()
+			while task.wait(0.05) and not Library.Unloaded do
+				if settings['AutoFarm']['AttackAll'] then
+					if settings['Teams']['EnableChestTeam'] or settings['Teams']['EnableFarmTeam'] then
+						local equippedPetsNumber = tostring(PlayerGui.MainGui.Pets.Main.Equipped.Amount.Text)
+
+						local s1, s2 = equippedPetsNumber:match("(%d+)/(%d+)")
+						local n1, n2 = tonumber(s1), tonumber(s2)
+
+						if n1 ~= n2 then
+							unequipPets()
+						end
+					end
+				end
+			end
+		end)
+
 		-- // AUTOFARM ALL
 		task.spawn(function()
 			while task.wait(0.05) and not Library.Unloaded do
@@ -941,17 +972,17 @@
 						if lastClosest == nil then lastClosest = Closest end
 
 						if lastClosest == Closest then
-							--BINDABLE.SendPet:Fire(Closest, true)
-
 							if Closest.Name == 'Chest' and settings['Teams']['EnableChestTeam'] and tostring(settings['Teams']['AutoFarmChests']) ~= '0' then
 								for teamName, teamButton in pairs(playerTeams) do
 									if teamName == settings['Teams']['AutoFarmChests'] then
 										for i, button in pairs(getconnections(teamButton.Activated)) do
 											if i == 1 then
 												if currentlyEquippedTeam ~= settings['Teams']['AutoFarmChests'] then
+													unequipPets()
 													currentlyEquippedTeam = settings['Teams']['AutoFarmChests']
 													button:Fire()
 													task.wait(0.1)
+												else
 													BINDABLE.SendPet:Fire(Closest, true)
 												end
 											end
@@ -964,9 +995,11 @@
 										for i, button in pairs(getconnections(teamButton.Activated)) do
 											if i == 1 then
 												if currentlyEquippedTeam ~= settings['Teams']['AutoFarmAll'] then
+													unequipPets()
 													currentlyEquippedTeam = settings['Teams']['AutoFarmAll']
 													button:Fire()
 													task.wait(0.1)
+												else
 													BINDABLE.SendPet:Fire(Closest, true)
 												end
 											end
