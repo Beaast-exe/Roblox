@@ -972,7 +972,7 @@
 						if lastClosest == nil then lastClosest = Closest end
 
 						if lastClosest == Closest then
-							if Closest.Name == 'Chest' and settings['Teams']['EnableChestTeam'] and tostring(settings['Teams']['AutoFarmChests']) ~= '0' then
+							if Closest.Name == 'Chest' and settings['Teams']['EnableChestTeam'] then
 								for teamName, teamButton in pairs(playerTeams) do
 									if teamName == settings['Teams']['AutoFarmChests'] then
 										for i, button in pairs(getconnections(teamButton.Activated)) do
@@ -989,7 +989,7 @@
 										end
 									end
 								end
-							elseif Closest.Name ~= 'Chest' and settings['Teams']['EnableFarmTeam'] and tostring(settings['Teams']['AutoFarmAll']) ~= '0' then
+							elseif Closest.Name ~= 'Chest' and settings['Teams']['EnableFarmTeam'] then
 								for teamName, teamButton in pairs(playerTeams) do
 									if teamName == settings['Teams']['AutoFarmAll'] then
 										for i, button in pairs(getconnections(teamButton.Activated)) do
@@ -1015,7 +1015,7 @@
 							VirtualInputManager:SendKeyEvent(false, 'R', false, nil)
 							lastClosest = Closest
 
-							if Closest.Name == 'Chest' and settings['Teams']['EnableChestTeam'] and tostring(settings['Teams']['AutoFarmChests']) ~= '0' then
+							if Closest.Name == 'Chest' and settings['Teams']['EnableChestTeam'] then
 								for teamName, teamButton in pairs(playerTeams) do
 									if teamName == settings['Teams']['AutoFarmChests'] then
 										for i, button in pairs(getconnections(teamButton.Activated)) do
@@ -1031,7 +1031,7 @@
 										end
 									end
 								end
-							elseif Closest.Name ~= 'Chest' and settings['Teams']['EnableFarmTeam'] and tostring(settings['Teams']['AutoFarmAll']) ~= '0' then
+							elseif Closest.Name ~= 'Chest' and settings['Teams']['EnableFarmTeam'] then
 								for teamName, teamButton in pairs(playerTeams) do
 									if teamName == settings['Teams']['AutoFarmAll'] then
 										for i, button in pairs(getconnections(teamButton.Activated)) do
