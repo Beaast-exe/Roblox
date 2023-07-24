@@ -13,6 +13,7 @@
 	local Window = Library:CreateWindow({ Title = 'Beaast Hub | Anime Fighters Simulator', Center = true, AutoShow = true })
 	local Tabs = {
 		['Main'] = Window:AddTab('Main'),
+		['Dungeon'] = Window:AddTab('Dungeon'),
 		['UI Settings'] = Window:AddTab('UI Settings'),
 	}
 
@@ -38,6 +39,13 @@
 			['ToggleAllRaids'] = false,
 			['EnableTeams'] = false,
 			['raidWorlds'] = {}
+		},
+		['Dungeon'] = {
+			['Enabled'] = false,
+			['EnableTeams'] = false,
+			['BackPosition'] = '7656.22852, -180.359406, -7856.69971, 1, 3.68046464e-08, 3.72713606e-14, -3.68046464e-08, 1, 5.18453689e-08, -3.53632088e-14, -5.18453689e-08, 1',
+			['BackWorld'] = 'OPWano',
+			['IgnoreBossUntilKey'] = false
 		},
 		['Teams'] = {
 			['AutoFarmAll'] = 1,
@@ -787,14 +795,104 @@
 
 	Library.ToggleKeybind = Options.MenuKeybind
 
-	coroutine.resume(coroutine.create(function()
-		while task.wait(1) do
-			local opens = tostring(PlayerGui.MainGui.Hatch.Buttons.Open.Price.Text):match('(%d+)')
-			MAX_SUMMON = opens
+	-- // DUNGEON TAB
+	local Dungeon = Tabs['Dungeon']:AddLeftGroupbox('Auto Dungeon')
+
+	Dungeon:AddToggle('autoDungeon', {
+		Text = 'Auto Do Dungeon',
+		Default = settings['Dungeon']['Enabled'],
+		Tooltip = 'Auto do dungeon',
+
+		Callback = function(value)
+			settings['Dungeon']['Enabled'] = value
+			SaveConfig()
 		end
-	end))
+	})
 
 	do
+		-- // INFO UPDATES
+		task.spawn(function()
+			while task.wait(1) and not Library.Unloaded do
+				local opens = tostring(PlayerGui.MainGui.Hatch.Buttons.Open.Price.Text):match('(%d+)')
+				MAX_SUMMON = opens
+			end
+		end)
+
+		-- // AUTO DUNGEON
+		task.spawn(function()
+			while task.wait() and not Library.Unloaded do
+				if settings['Dungeon']['Enabled'] and player.World.Value == 'Dungeon' then
+					local dungeonWorld = Workspace.Worlds['Dungeon']
+					local dungeonEnemies = dungeonWorld.Enemies
+					local dungeonMap = dungeonWorld.Map.Model
+
+					if #dungeonEnemies:GetChildren() == 0 then
+						for _, room in ipairs(dungeonMap:GetChildren()) do
+							if room:FindFirstChild('ConfirmPart') and room.ConfirmPart:FindFirstChild('ProximityPrompt') then
+								repeat
+									character.HumanoidRootPart.CFrame = room.ConfirmPart.CFrame + Vector3.new(0, 0, 5)
+									task.wait()
+
+									pcall(function()
+										fireproximityprompt(room.ConfirmPart.ProximityPrompt)
+									end)
+
+									task.wait(1)
+								until Library.Unloaded
+								or not room:FindFirstChild('ConfirmPart')
+								--or not room.ConfirmPart:FindFirstChild('ProximityPrompt')
+								or not settings['Dungeon']['Enabled']
+								or player.World.Value ~= 'Dungeon'
+								or #dungeonEnemies:GetChildren() ~= 0
+							end
+						end
+						
+						for _, door in dungeonMap:GetDescendants() do
+							if door.Name == 'DungeonRoomDoorRemotePrompt' and door.Parent.Name == 'Door' then
+								character.HumanoidRootPart.CFrame = door.Parent.CFrame
+
+								repeat									
+									pcall(function()
+										fireproximityprompt(door)
+									end)
+	
+									task.wait(1)
+								until Library.Unloaded
+								or not settings['Dungeon']['Enabled']
+								or player.World.Value ~= 'Dungeon'
+							end
+						end
+					else
+						for _, enemy in ipairs(dungeonEnemies:GetChildren()) do
+							pcall(function()
+								character.HumanoidRootPart.CFrame = enemy.HumanoidRootPart.CFrame
+								movePetsToPlayer()
+
+								repeat
+									if enemy:FindFirstChild('Attackers') then
+										if settings['AutoFarm']['AttackAll'] then
+											task.wait(0.1)
+										else
+											BINDABLE.SendPet:Fire(enemy, true)
+										end
+									end
+									task.wait()
+								until Library.Unloaded
+								or enemy:FindFirstChild('HumanoidRootPart') == nil
+								or enemy:FindFirstChild('Health') == nil
+								or enemy:FindFirstChild('Attackers') == nil
+								or player.World.Value ~= 'Dungeon'
+								or not settings['Dungeon']['Enabled']
+								or enemy.Health.Value <= 0
+									
+								retreat()
+							end)
+						end
+					end
+				end
+			end
+		end)
+
 		-- // AUTORAID
 		task.spawn(function()
 			while task.wait() and not Library.Unloaded do
