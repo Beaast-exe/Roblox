@@ -563,7 +563,7 @@
 		Default = settings['Teams']['AutoFarmAll'],
 		Multi = false,
 
-		Text = 'Equip Team on autofarm all',
+		Text = 'Equip Team on autofarm/dungeon',
 
 		Callback = function(value)
 			settings['Teams']['AutoFarmAll'] = value
@@ -576,7 +576,7 @@
 		Default = settings['Teams']['AutoFarmChests'],
 		Multi = false,
 
-		Text = 'Equip Team on autofarm chests',
+		Text = 'Equip Team on chests',
 
 		Callback = function(value)
 			settings['Teams']['AutoFarmChests'] = value
@@ -809,6 +809,17 @@
 		end
 	})
 
+	Dungeon:AddToggle('autoDungeonTeams', {
+		Text = 'Equip Teams',
+		Default = settings['Dungeon']['EnableTeams'],
+		Tooltip = 'Auto equip dungeon teams',
+
+		Callback = function(value)
+			settings['Dungeon']['EnableTeams'] = value
+			SaveConfig()
+		end
+	})
+
 	do
 		-- // INFO UPDATES
 		task.spawn(function()
@@ -825,9 +836,10 @@
 					local dungeonWorld = Workspace.Worlds['Dungeon']
 					local dungeonEnemies = dungeonWorld.Enemies
 					local dungeonMap = dungeonWorld.Map.Model
+					local dungeonRooms = dungeonMap:GetChildren()
 
 					if #dungeonEnemies:GetChildren() == 0 then
-						for _, room in ipairs(dungeonMap:GetChildren()) do
+						for _, room in ipairs(dungeonRooms) do
 							if room:FindFirstChild('ConfirmPart') and room.ConfirmPart:FindFirstChild('ProximityPrompt') then
 								repeat
 									character.HumanoidRootPart.CFrame = room.ConfirmPart.CFrame + Vector3.new(0, 0, 5)
@@ -840,26 +852,28 @@
 									task.wait(1)
 								until Library.Unloaded
 								or not room:FindFirstChild('ConfirmPart')
-								--or not room.ConfirmPart:FindFirstChild('ProximityPrompt')
+								or not room:FindFirstChild('ConfirmPart'):FindFirstChild('ProximityPrompt')
 								or not settings['Dungeon']['Enabled']
 								or player.World.Value ~= 'Dungeon'
 								or #dungeonEnemies:GetChildren() ~= 0
 							end
-						end
-						
-						for _, door in dungeonMap:GetDescendants() do
-							if door.Name == 'DungeonRoomDoorRemotePrompt' and door.Parent.Name == 'Door' then
-								character.HumanoidRootPart.CFrame = door.Parent.CFrame
 
-								repeat									
-									pcall(function()
-										fireproximityprompt(door)
-									end)
-	
-									task.wait(1)
-								until Library.Unloaded
-								or not settings['Dungeon']['Enabled']
-								or player.World.Value ~= 'Dungeon'
+							for key, roomItem in ipairs(room:GetDescendants()) do
+								if roomItem.Name == 'DungeonRoomDoorRemotePrompt' and roomItem:IsA('ProximityPrompt') then
+									character.HumanoidRootPart.CFrame = roomItem.Parent.CFrame
+
+									repeat
+										pcall(function()
+											fireproximityprompt(roomItem)
+										end)
+
+										task.wait(1)
+									until Library.Unloaded
+									or not settings['Dungeon']['Enabled']
+									or player.World.Value ~= 'Dungeon'
+									or not roomItem
+									or #dungeonEnemies:GetChildren() ~= 0
+								end
 							end
 						end
 					else
@@ -873,7 +887,39 @@
 										if settings['AutoFarm']['AttackAll'] then
 											task.wait(0.1)
 										else
-											BINDABLE.SendPet:Fire(enemy, true)
+											if settings['Dungeon']['EnableTeams'] then
+												if enemy.Name == 'Chest' then
+													for teamName, teamButton in pairs(playerTeams) do
+														if teamName == settings['Teams']['AutoFarmChests'] then
+															for i, button in pairs(getconnections(teamButton.Activated)) do
+																if i == 1 then
+																	if currentlyEquippedTeam ~= settings['Teams']['AutoFarmChests'] then
+																		currentlyEquippedTeam = settings['Teams']['AutoFarmChests']
+																		button:Fire()
+																	end
+																end
+															end
+														end
+													end
+												else
+													for teamName, teamButton in pairs(playerTeams) do
+														if teamName == settings['Teams']['AutoFarmAll'] then
+															for i, button in pairs(getconnections(teamButton.Activated)) do
+																if i == 1 then
+																	if currentlyEquippedTeam ~= settings['Teams']['AutoFarmAll'] then
+																		currentlyEquippedTeam = settings['Teams']['AutoFarmAll']
+																		button:Fire()
+																	end
+																end
+															end
+														end
+													end
+												end
+
+												BINDABLE.SendPet:Fire(enemy, true)
+											else
+												BINDABLE.SendPet:Fire(enemy, true)
+											end
 										end
 									end
 									task.wait()
