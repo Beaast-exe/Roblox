@@ -755,9 +755,9 @@
 		end
 	end))
 
-	local Keybinds = Tabs['Main']:AddRightGroupbox('Keybinds')
+	local Misc = Tabs['Main']:AddRightGroupbox('Misc')
 	
-	Keybinds:AddLabel('Auto Farm Keybind'):AddKeyPicker('farmKeybind', {
+	Misc:AddLabel('Auto Farm Keybind'):AddKeyPicker('farmKeybind', {
 		Default = settings['Keybinds']['AutoFarm'],
 		NoUI = true,
 		Text = 'Auto Farm Keybind',
@@ -769,6 +769,18 @@
 
 		ChangedCallback = function(value)
 			settings['Keybinds']['AutoFarm'] = Options.farmKeybind.Value
+			SaveConfig()
+		end
+	})
+
+	Misc:AddToggle('watermark', {
+		Text = 'Toggle Watermark',
+		Default = settings['watermark'],
+		Tooltip = 'Toggle Watermark Visibility',
+
+		Callback = function(value)
+			settings['watermark'] = value
+			Library:SetWatermarkVisibility(value)
 			SaveConfig()
 		end
 	})
@@ -1187,3 +1199,60 @@
 	ThemeManager:SetFolder('BeaastHub')
 	local settingsRightBox = Tabs["UI Settings"]:AddRightGroupbox("Themes")
 	ThemeManager:ApplyToGroupbox(settingsRightBox)
+
+	local function GetLocalTime()
+		local Time = os.date("*t")
+		local Hour = Time.hour;
+		local Minute = Time.min;
+		local Second = Time.sec;
+	
+		local AmPm = nil;
+		if Hour >= 12 then
+			Hour = Hour - 12;
+			AmPm = "PM";
+		else
+			Hour = Hour == 0 and 12 or Hour;
+			AmPm = "AM";
+		end
+	
+		return string.format("%s:%02d:%02d %s", Hour, Minute, Second, AmPm);
+	end
+	
+	local DayMap = {"st", "nd", "rd", "th"}
+	local function FormatDay(Day)
+		local LastDigit = Day % 10
+		if LastDigit >= 1 and LastDigit <= 3 then
+			return string.format("%s%s", Day, DayMap[LastDigit])
+		end
+	
+		return string.format("%s%s", Day, DayMap[4])
+	end
+	
+	local MonthMap = {"January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"}
+	local function GetLocalDate()
+		local Time = os.date("*t")
+		local Day = Time.day
+	
+		local Month = nil;
+		if Time.month >= 1 and Time.month <= 12 then
+			Month = MonthMap[Time.month]
+		end
+	
+		return string.format("%s %s", Month, FormatDay(Day))
+	end
+	
+	local function GetLocalDateTime()
+		return GetLocalDate() .. " " .. GetLocalTime()
+	end
+
+	task.spawn(function()
+		while task.wait(0.1) and not Library.Unloaded do	
+			local Ping = string.split(string.split(game.Stats.Network.ServerStatsItem["Data Ping"]:GetValueString(), " ")[1], ".")[1];
+			local Fps = string.split(game.Stats.Workspace.Heartbeat:GetValueString(), ".")[1];
+			local AccountName = player.Name;
+	
+			if settings['watermark'] then
+				Library:SetWatermark(string.format("%s | %s | %s FPS | %s Ping", GetLocalDateTime(), AccountName, Fps, Ping))
+			end
+		end
+	end)
