@@ -1128,7 +1128,7 @@
 					local infTowerButton2 = PlayerGui.MainGui.InfinityTowerTeleport.Main.Yes
 
 					if minute == '24' or minute == '25' then
-						for _, v in pairs(getconnections(infTowerButton1.Activated)) do
+						for _, v in pairs(getconnections(infTowerButton2.Activated)) do
 							if _ == 1 then
 								v:Fire()
 
