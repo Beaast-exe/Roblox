@@ -32,6 +32,10 @@
 			['AutoUltSkip'] = false,
 			['BoostPetSpeed'] = false
 		},
+		['AutoTower'] = {
+			['Enabled'] = false,
+			['EnableTeams'] = false
+		},
 		['AutoRaid'] = {
 			['Enabled'] = false,
 			['BackPosition'] = '7656.22852, -180.359406, -7856.69971, 1, 3.68046464e-08, 3.72713606e-14, -3.68046464e-08, 1, 5.18453689e-08, -3.53632088e-14, -5.18453689e-08, 1',
@@ -192,6 +196,18 @@
 	local playerPos = character.HumanoidRootPart.CFrame
 	local WORLD = player.World.Value
 
+	local easyTrialTime
+	local mediumTrialTime
+	local hardTrialTime
+	local ultimateTrialTime
+	local infinityTowerTime
+
+	local infTowerTimer
+	local infTowerFloorNumberText
+	local towerTime
+	local yesButton
+	local floorNumberText
+
 	--To reference the countdown in trial
 	function InitializeTrial()
 		REMOTE.AttemptTravel:InvokeServer('Tower')
@@ -203,14 +219,18 @@
 		REMOTE.AttemptTravel:InvokeServer(WORLD)
 		character.HumanoidRootPart.CFrame = playerPos
 
-		local easyTrialTime = Workspace.Worlds.Tower.Door1.Countdown.SurfaceGui.Background.Time
-		local mediumTrialTime = Workspace.Worlds.Tower.Door2.Countdown.SurfaceGui.Background.Time
-		local hardTrialTime = Workspace.Worlds.Tower.Door3.Countdown.SurfaceGui.Background.Time
-		local ultimateTrialTime = Workspace.Worlds.Tower.Door4.Countdown.SurfaceGui.Background.Time
+		easyTrialTime = Workspace.Worlds.Tower.Door1.Countdown.SurfaceGui.Background.Time
+		mediumTrialTime = Workspace.Worlds.Tower.Door2.Countdown.SurfaceGui.Background.Time
+		hardTrialTime = Workspace.Worlds.Tower.Door3.Countdown.SurfaceGui.Background.Time
+		ultimateTrialTime = Workspace.Worlds.Tower.Door4.Countdown.SurfaceGui.Background.Time
+		infinityTowerTime = Workspace.Worlds.Tower.InfinityDoor.Countdown.SurfaceGui.Background.Time
 
-		local towerTime = PlayerGui.MainGui.TowerTimer.Main.Time
-		local yesButton = PlayerGui.MainGui.RaidTransport.Main.Yes
-		local floorNumberText = PlayerGui.MainGui.TowerTimer.CurrentFloor.Value
+		infTowerTimer = PlayerGui.MainGui.InfinityTowerTimer.Main.Time
+		infTowerFloorNumberText = PlayerGui.MainGui.InfinityTowerTimer.CurrentFloor.Value
+
+		towerTime = PlayerGui.MainGui.TowerTimer.Main.Time
+		yesButton = PlayerGui.MainGui.RaidTransport.Main.Yes
+		floorNumberText = PlayerGui.MainGui.TowerTimer.CurrentFloor.Value
 	end
 
 	function ResetPlayerTeams()
@@ -226,7 +246,6 @@
 		end
 	end
 
-	local yesButton = PlayerGui.MainGui.RaidTransport.Main.Yes
 	local confirmRaidButton = PlayerGui.RaidGui.RaidResults.Confirm
 	local unequipAllButton = PlayerGui.MainGui.Pets.UnequipButton.Button
 
@@ -244,6 +263,28 @@
 		VirtualInputManager:SendKeyEvent(false, 'R', false, nil)
 	end
 
+	function getPetWithUID(uid)
+        local pets = getPets()
+        for _, pet in pairs(pets) do
+            if pet.UID == uid then
+                return pet
+            end
+        end
+    end
+
+	function getEquippedPets()
+        local equipped = {}
+        for _, obj in ipairs(player.Pets:GetChildren()) do
+            local pet = obj.Value
+            local petTable = getPetWithUID(pet.Data.UID.Value)
+            if petTable then
+                table.insert(equipped, petTable)
+            end
+        end
+
+        return equipped
+    end
+
 	function unequipPets()
 		for i, button in pairs(getconnections(unequipAllButton.Activated)) do
 			if i == 1 then
@@ -252,6 +293,73 @@
 			end
 		end
 	end
+
+	function sendPet(enemy)
+        if sentDebounce[enemy] then return end
+        sentDebounce[enemy] = true
+
+        local currWorld = player.World.Value
+        local AMOUNT_TO_MOVE_BACK = 10
+        local charPos = player.Character.HumanoidRootPart.CFrame
+        local x = 0
+        local petTab = {}
+        local models = {}
+
+        for _, objValue in ipairs(player.Pets:GetChildren()) do
+            local p = objValue.Value
+            local pet = getPetWithUID(p.Data.UID.Value)
+            table.insert(petTab, pet)
+        end
+
+        table.sort(petTab, function(pet1, pet2)
+            return pet1.Level > pet2.Level
+        end)
+
+        for _, pet in pairs(petTab) do
+            for _, objValue in ipairs(player.Pets:GetChildren()) do
+                model = objValue.Value
+
+                if model.Data.UID.Value == pet.UID then
+                    table.insert(models, model)
+                    break
+                end
+            end
+        end
+
+        for _, model in ipairs(models) do
+            local cframe = charPos + Vector3.new(x, 0, 0)
+            local targetPart = model:FindFirstChild("TargetPart")
+            local hrp = model:FindFirstChild("HumanoidRootPart")
+
+            if targetPart and hrp then
+                targetPart.CFrame = cframe
+                hrp.CFrame = cframe
+                x -= AMOUNT_TO_MOVE_BACK
+            end
+        end
+
+        table.clear(petTab)
+        table.clear(models)
+        petTab = nil
+        models = nil
+
+        repeat
+            if enemy:FindFirstChild("Attackers") and enemy:FindFirstChild("AnimationController") then
+                BINDABLE.SendPet:Fire(enemy, true)
+            end
+
+            task.wait()
+        until _G.disabled
+        or enemy:FindFirstChild("Attackers") == nil
+        or not enemy:IsDescendantOf(workspace)
+        or enemy:FindFirstChild("AnimationController") == nil
+        or enemy:FindFirstChild("Health") == nil
+        or player.World.Value ~= currWorld
+        or enemy.Health.Value <= 0
+        or (not towerFarm)
+
+        sentDebounce[enemy] = nil
+    end
 
 	function GenEggStats()
 		local orderedEggs = {
@@ -392,15 +500,16 @@
 	end
 
 	function Initialize()
-		--InitializeTrial()
 		ResetPlayerTeams()
-		task.wait(1)
-		GenEggStats()
-		task.wait(1)
+		task.wait(0.5)
 		unequipAllButton.MouseButton1Click:Connect(function()
 			unequipPets()
 		end)
-		task.wait(1)
+		task.wait(0.5)
+		InitializeTrial()
+		task.wait(0.5)
+		GenEggStats()
+		task.wait(0.5)
 		Library:Notify(string.format('Script Loaded in %.2f second(s)!', tick() - StartTick), 5)
 	end
 
@@ -821,12 +930,207 @@
 		end
 	})
 
+	local AutoTower = Tabs['Dungeon']:AddRightGroupbox('Infinity Tower')
+
+	AutoTower:AddToggle('enableAutoTower', {
+		Text = 'Auto Tower',
+		Default = settings['AutoTower']['Enabled'],
+		Tooltip = 'Enable Auto Tower',
+
+		Callback = function(value)
+			settings['AutoTower']['Enabled'] = value
+			SaveConfig()
+		end
+	})
+
+	AutoTower:AddToggle('equipTeamsOnTower', {
+		Text = 'Equip Teams',
+		Default = settings['AutoTower']['EnableTeams'],
+		Tooltip = 'Auto Equip Teams',
+
+		Callback = function(value)
+			settings['AutoTower']['EnableTeams'] = value
+			SaveConfig()
+		end
+	})
+
 	do
 		-- // INFO UPDATES
 		task.spawn(function()
 			while task.wait(1) and not Library.Unloaded do
 				local opens = tostring(PlayerGui.MainGui.Hatch.Buttons.Open.Price.Text):match('(%d+)')
 				MAX_SUMMON = opens
+			end
+		end)
+
+		function handleAutoInfinityTower(enemies, enemy)
+			if Library.Unloaded then return end
+			if player.World.Value ~= "InfinityTower" then return end
+
+			character.HumanoidRootPart.CFrame = enemy.HumanoidRootPart.CFrame
+
+			movePetsToPlayer()
+			task.wait()
+
+			local uids
+			local conn
+			local debounce = false
+			local IS_CHEST = string.find(string.lower(enemy.Name), 'chest') ~= nil
+
+			if settings['AutoTower']['EnableTeams'] then
+				if IS_CHEST then
+					for teamName, teamButton in pairs(playerTeams) do
+						if teamName == settings['Teams']['AutoFarmChests'] then
+							for i, button in pairs(getconnections(teamButton.Activated)) do
+								if i == 1 then
+									if currentlyEquippedTeam ~= settings['Teams']['AutoFarmChests'] then
+										currentlyEquippedTeam = settings['Teams']['AutoFarmChests']
+										button:Fire()
+									end
+								end
+							end
+						end
+					end
+				else
+					for teamName, teamButton in pairs(playerTeams) do
+						if teamName == settings['Teams']['AutoFarmAll'] then
+							for i, button in pairs(getconnections(teamButton.Activated)) do
+								if i == 1 then
+									if currentlyEquippedTeam ~= settings['Teams']['AutoFarmAll'] then
+										currentlyEquippedTeam = settings['Teams']['AutoFarmAll']
+										button:Fire()
+									end
+								end
+							end
+						end
+					end
+				end
+
+				repeat
+					if enemy:FindFirstChild('Attackers') then
+						sendPet(enemy)
+					end
+
+					task.wait()
+				until Library.Unloaded
+				or player.World.Value ~= 'InfinityTower'
+				or enemy:FindFirstChild('HumanoidRootPart') == nil
+				or enemy:FindFirstChild("Attackers") == nil
+				or not settings['AutoTower']['Enabled']
+				or #enemies:GetChildre() == 0
+				or not enemy:IsDescendantOf(workspace)
+
+				retreat()
+			end
+		end
+
+		-- // INFINITY TOWER FARM
+		task.spawn(function()
+			while task.wait() and not Library.Unloaded do
+				if settings['AutoTower']['Enabled'] and player.World.Value == 'InfinityTower' then
+					if infTowerTimer.Text ~= '00:00' and player.World.Value == 'InfinityTower' then
+						local enemies = Workspace.Worlds['InfinityTower'].Enemies
+                        --local tab = enemies:GetChildren()
+                        --local floorNumber = tonumber(infTowerFloorNumberText.Text)
+
+						for _, enemy in ipairs(enemies:GetChildren()) do
+							pcall(function()
+								character.HumanoidRootPart.CFrame = enemy.HumanoidRootPart.CFrame
+								movePetsToPlayer()
+		
+								repeat
+									if enemy:FindFirstChild('Attackers') then
+										if settings['AutoFarm']['AttackAll'] then
+											task.wait(0.1)
+										else
+											if settings['AutoTower']['EnableTeams'] then
+												if enemy.Name == 'Chest' then
+													for teamName, teamButton in pairs(playerTeams) do
+														if teamName == settings['Teams']['AutoFarmChests'] then
+															for i, button in pairs(getconnections(teamButton.Activated)) do
+																if i == 1 then
+																	if currentlyEquippedTeam ~= settings['Teams']['AutoFarmChests'] then
+																		currentlyEquippedTeam = settings['Teams']['AutoFarmChests']
+																		button:Fire()
+																	end
+																end
+															end
+														end
+													end
+												else
+													for teamName, teamButton in pairs(playerTeams) do
+														if teamName == settings['Teams']['AutoFarmAll'] then
+															for i, button in pairs(getconnections(teamButton.Activated)) do
+																if i == 1 then
+																	if currentlyEquippedTeam ~= settings['Teams']['AutoFarmAll'] then
+																		currentlyEquippedTeam = settings['Teams']['AutoFarmAll']
+																		button:Fire()
+																	end
+																end
+															end
+														end
+													end
+												end
+		
+												BINDABLE.SendPet:Fire(enemy, true)
+											else
+												BINDABLE.SendPet:Fire(enemy, true)
+											end
+										end
+									end
+									task.wait()
+								until Library.Unloaded
+								or enemy:FindFirstChild('HumanoidRootPart') == nil
+								or enemy:FindFirstChild('Health') == nil
+								or enemy:FindFirstChild('Attackers') == nil
+								or player.World.Value ~= 'Dungeon'
+								or not settings['Dungeon']['Enabled']
+								or enemy.Health.Value <= 0
+									
+								retreat()
+							end)
+						end
+						--[[
+						if #tab > 0 then
+							for _, enemy in ipairs(tab) do
+								local expression = not enemy:IsDescendantOf(workspace) or player.World.Value ~= "InfinityTower"
+
+								if not expression then
+									pcall(function()
+										handleAutoInfinityTower(enemies, enemy)
+									end)
+								end
+							end
+						end
+						]]--
+					end
+				end
+			end
+		end)
+
+		-- // AUTO INFINITY TOWER TP
+		task.spawn(function()
+			while task.wait() and not Library.Unloaded do
+				local shouldStart = false
+
+				if settings['AutoTower']['Enabled'] and infinityTowerTime.Text == '00:45' then
+					shouldStart = true
+					CURRENT_TRIAL = 'INFINITY'
+				end
+
+				if shouldStart then
+					REMOTE.AttemptTravel:InvokeServer('InfinityTower')
+
+					originalEquippedPets = getEquippedPets()
+					table.clear(originalPetsTab)
+
+					for _, pet in pairs(originalEquippedPets) do
+						table.insert(originalPetsTab, pet.UID)
+					end
+
+					character.HumanoidRootPart.CFrame = Workspace.Worlds['InfinityTower'].Spawns.SpawnLocation.CFrame + Vector3.new(0, 5, 0)
+					table.clear(sentDebounce)
+				end
 			end
 		end)
 
