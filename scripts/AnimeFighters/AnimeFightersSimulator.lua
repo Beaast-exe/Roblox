@@ -204,6 +204,7 @@
 
 	local infTowerTimer
 	local infTowerFloorNumberText
+	local infTowerYesButton
 	local towerTime
 	local yesButton
 	local floorNumberText
@@ -226,10 +227,11 @@
 		infinityTowerTime = Workspace.Worlds.Tower.InfinityDoor.Countdown.SurfaceGui.Background.Time
 
 		infTowerTimer = PlayerGui.MainGui.InfinityTowerTimer.Main.Time
-		infTowerFloorNumberText = PlayerGui.MainGui.InfinityTowerTimer.CurrentFloor.Value
+		infTowerFloorNumberText = PlayerGui.MainGui.InfinityTowerTimer.CurrentFloor
 
 		towerTime = PlayerGui.MainGui.TowerTimer.Main.Time
 		yesButton = PlayerGui.MainGui.RaidTransport.Main.Yes
+		infTowerYesButton = PlayerGui.MainGui.InfinityTowerTeleport.Main.Yes
 		floorNumberText = PlayerGui.MainGui.TowerTimer.CurrentFloor.Value
 	end
 
@@ -1116,23 +1118,91 @@
 				if settings['AutoTower']['Enabled'] and infinityTowerTime.Text == '00:45' then
 					shouldStart = true
 					CURRENT_TRIAL = 'INFINITY'
-				end
+					
+					REMOTE.AttemptTravel:InvokeServer('Tower')
+					task.wait(0.5)
+					character.HumanoidRootPart.CFrame = Workspace.Worlds['Tower'].Spawns.SpawnLocation.CFrame + Vector3.new(0, 5, 0)
+					task.wait(0.5)
+					
+					local infTowerButton1 = PlayerGui.MainGui.InfinityTowerTransport.Main.Yes
+					local infTowerButton2 = PlayerGui.MainGui.InfinityTowerTeleport.Main.Yes
 
-				if shouldStart then
-					REMOTE.AttemptTravel:InvokeServer('InfinityTower')
+					if minute == '24' or minute == '25' then
+						for _, v in pairs(getconnections(infTowerButton1.Activated)) do
+							if _ == 1 then
+								v:Fire()
 
-					originalEquippedPets = getEquippedPets()
-					table.clear(originalPetsTab)
+								repeat
+									task.wait(3)
 
-					for _, pet in pairs(originalEquippedPets) do
-						table.insert(originalPetsTab, pet.UID)
+									if settings['AutoTower']['EnableTeams'] and tostring(settings['Teams']['AutoFarmAll']) ~= '0' then
+										for teamName, teamButton in pairs(playerTeams) do
+											for i, button in pairs(getconnections(teamButton.Activated)) do
+												if i == 1 then
+													if currentlyEquippedTeam ~= settings['Teams']['AutoFarmAll'] then
+														unequipPets()
+														currentlyEquippedTeam = settings['Teams']['AutoFarmAll']
+														button:Fire()
+														task.wait(0.1)
+													end
+												end
+											end
+										end
+									end
+								until minute == '25' or Library.Unloaded or not settings['AutoTower']['Enabled']
+							end
+						end
+						--[[
+						for _, v in pairs(getconnections(infTowerButton2.Activated)) do
+							if _ == 1 then
+								v:Fire()
+
+								repeat
+									task.wait(3)
+
+									if settings['AutoTower']['EnableTeams'] and tostring(settings['Teams']['AutoFarmAll']) ~= '0' then
+										for teamName, teamButton in pairs(playerTeams) do
+											for i, button in pairs(getconnections(teamButton.Activated)) do
+												if i == 1 then
+													if currentlyEquippedTeam ~= settings['Teams']['AutoFarmAll'] then
+														unequipPets()
+														currentlyEquippedTeam = settings['Teams']['AutoFarmAll']
+														button:Fire()
+														task.wait(0.1)
+													end
+												end
+											end
+										end
+									end
+								until minute == '26' or Library.Unloaded or not settings['AutoTower']['Enabled']
+							end
+						end
 					end
-
-					character.HumanoidRootPart.CFrame = Workspace.Worlds['InfinityTower'].Spawns.SpawnLocation.CFrame + Vector3.new(0, 5, 0)
-					table.clear(sentDebounce)
+					]]--
 				end
 			end
 		end)
+
+		-- // AUTO INFINITY TOWER RETURN
+		--[[
+		task.spawn(function()
+			while task.wait() and not Library.Unloaded do
+				if player.World.Value == 'InfinityTower' then
+					if (infTowerTimer.Text == '00:01') or (CURRENT_TRIAL == 'INFINITY' and stopTrial and tonumber(infTowerFloorNumberText.Text) == settings['AutoTower']['RoomToLeave'])) then
+						pcall(function()
+							infTowerTimer.Text = '00:00'
+							infTowerFloorNumberText.Text = '0'
+							CURRENT_TRIAL = ''
+
+							table.clear(sentDebounce)
+							tp(settings['AutoRaid']['BackWorld'], stringToCFrame(settings['AutoRaid']['BackPosition']))
+							task.wait(1)
+						end)
+					end
+				end
+			end
+		end)
+		]]--
 
 		-- // AUTO DUNGEON
 		task.spawn(function()
@@ -1381,7 +1451,7 @@
 								repeat
 									pcall(function()
 										tp(settings['AutoRaid']['BackWorld'], stringToCFrame(settings['AutoRaid']['BackPosition']))
-										task.wait(1)							
+										task.wait(1)
 
 										if settings['AutoRaid']['EnableTeams'] and tostring(settings['Teams']['RaidAfter']) ~= '0' then
 											for teamName, teamButton in pairs(playerTeams) do
