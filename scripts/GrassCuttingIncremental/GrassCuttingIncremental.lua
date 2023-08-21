@@ -32,10 +32,16 @@ local defaultSettings = {
 		['AutoCollect'] = false,
 		['AutoCollectDelay'] = 0.1
 	},
+	['Misc'] = {
+		['WalkSpeed'] = {
+			['Enabled'] = false,
+			['Amount'] = 36
+		},
+		['Watermark'] = false,
+	},
 	['Keybinds'] = {
 		['menuKeybind'] = 'LeftShift'
 	},
-	['Watermark'] = false
 }
 
 if not isfolder(saveFolderName) then makefolder(saveFolderName) end
@@ -81,12 +87,37 @@ local Misc = Tabs['Main']:AddRightGroupbox('Misc')
 
 Misc:AddToggle('watermark', {
 	Text = 'Toggle Watermark',
-	Default = settings['Watermark'],
+	Default = settings['Misc']['Watermark'],
 	Tooltip = 'Toggle Watermark Visibility',
 
 	Callback = function(value)
-		settings['Watermark'] = value
+		settings['Misc']['Watermark'] = value
 		Library:SetWatermarkVisibility(value)
+		SaveConfig()
+	end
+})
+
+Misc:AddToggle('walkSpeedToggle', {
+	Text = 'Enable WalkSpeed Modifier',
+	Default = settings['Misc']['WalkSpeed']['Enabled'],
+	Tooltip = 'Enable WalkSpeed Modifier',
+
+	Callback = function(value)
+		settings['Misc']['WalkSpeed']['Enabled'] = value
+		SaveConfig()
+	end
+})
+
+Misc:AddSlider('walkSpeedSlider', {
+	Text = 'Player Walk Speed',
+	Default = settings['Misc']['WalkSpeed']['Amount'],
+	Min = 36,
+	Max = 250,
+	Rounding = 0,
+	HideMax = true,
+
+	Callback = function(value)
+		settings['Misc']['WalkSpeed']['Amount'] = value
 		SaveConfig()
 	end
 })
@@ -101,6 +132,15 @@ task.spawn(function()
 					EarnGrass.collect(v, false)
 				end
 			end
+		end
+	end
+end)
+
+
+task.spawn(function()
+	while task.wait() and not Library.Unloaded do
+		if settings['Misc']['WalkSpeed']['Enabled'] then
+			LocalPlayer.Character.Humanoid.WalkSpeed = settings['Misc']['WalkSpeed']['Amount']
 		end
 	end
 end)
@@ -187,7 +227,7 @@ task.spawn(function()
 		local Fps = string.split(game.Stats.Workspace.Heartbeat:GetValueString(), '.')[1];
 		local AccountName = LocalPlayer.Name;
 
-		if settings['Watermark'] then
+		if settings['Misc']['Watermark'] then
 			Library:SetWatermark(string.format('%s | %s | %s FPS | %s Ping', GetLocalDateTime(), AccountName, Fps, Ping))
 		end
 	end
