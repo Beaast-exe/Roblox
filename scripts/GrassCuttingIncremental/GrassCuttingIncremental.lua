@@ -2,11 +2,15 @@
 local StartTick = tick()
 repeat task.wait() until game:IsLoaded()
 
-local HttpService = game:GetService("HttpService")
+local HttpService = game:GetService('HttpService')
 local request = http_request or request or HttpPost or syn.request or http.request
 
-local Players = game:GetService("Players")
+local Players = game:GetService('Players')
 local LocalPlayer = Players.LocalPlayer
+
+local Workspace = game:GetService('Workspace')
+local ReplicatedStorage = game:GetService('ReplicatedStorage')
+local EarnGrass = require(ReplicatedStorage.EarnGrass)
 ------
 local repo = 'https://raw.githubusercontent.com/wally-rblx/LinoriaLib/main/'
 local Library = loadstring(game:HttpGet(repo .. 'Library.lua'))()
@@ -24,9 +28,9 @@ local saveFileName = LocalPlayer.Name .. '.json'
 local saveFile = saveFolderName .. '/' .. gameFolderName .. '/' .. saveFileName
 
 local defaultSettings = {
-	['AutoCollect'] = {
-		['Grass'] = false,
-		['AntiGrass'] = false
+	['Main'] = {
+		['AutoCollect'] = false,
+		['AutoCollectDelay'] = 0.1
 	},
 	['Keybinds'] = {
 		['menuKeybind'] = 'LeftShift'
@@ -44,9 +48,35 @@ local function SaveConfig()
 end
 --#endregion
 
- --#region WORKING AREA
+--#region WORKING AREA
+local Main = Tabs['Main']:AddLeftGroupbox('Main')
 
---#endregion
+Main:AddToggle('autoCollectGrass', {
+	Text = 'Auto Collect',
+	Default = settings['Main']['AutoCollect'],
+	Tooltip = 'Automatically Collects Grass',
+
+	Callback = function(value)
+		settings['Main']['AutoCollect'] = value
+		SaveConfig()
+	end
+})
+
+Main:AddSlider('autoCollectDelay', {
+	Text = 'Auto Collect Delay',
+	Default = settings['Main']['AutoCollectDelay'],
+	Suffix = ' seconds',
+	Min = 0.1,
+	Max = 10,
+	Rounding = 1,
+	HideMax = true,
+
+	Callback = function(value)
+		settings['Main']['AutoCollectDelay'] = value
+		SaveConfig()
+	end
+})
+
 local Misc = Tabs['Main']:AddRightGroupbox('Misc')
 
 Misc:AddToggle('watermark', {
@@ -60,6 +90,21 @@ Misc:AddToggle('watermark', {
 		SaveConfig()
 	end
 })
+--#endregion
+
+--#region LOOPS
+task.spawn(function()
+	while task.wait(settings['Main']['AutoCollectDelay']) and not Library.Unloaded do
+		if settings['Main']['AutoCollect'] then
+			for _, v in pairs(Workspace.GrassObjects:GetChildren()) do
+				if v.Identifier.Value ~= 'magic' then
+					EarnGrass.collect(v, false)
+				end
+			end
+		end
+	end
+end)
+--#endregion
 
 --#region END OF SCRIPT
 Library:OnUnload(function()
@@ -88,11 +133,11 @@ Library.ToggleKeybind = Options.MenuKeybind
 -- Addons:
 ThemeManager:SetLibrary(Library)
 ThemeManager:SetFolder('BeaastHub')
-local settingsRightBox = Tabs["UI Settings"]:AddRightGroupbox("Themes")
+local settingsRightBox = Tabs['UI Settings']:AddRightGroupbox('Themes')
 ThemeManager:ApplyToGroupbox(settingsRightBox)
 
 local function GetLocalTime()
-	local Time = os.date("*t")
+	local Time = os.date('*t')
 	local Hour = Time.hour;
 	local Minute = Time.min;
 	local Second = Time.sec;
@@ -100,28 +145,28 @@ local function GetLocalTime()
 	local AmPm = nil;
 	if Hour >= 12 then
 		Hour = Hour - 12;
-		AmPm = "PM";
+		AmPm = 'PM';
 	else
 		Hour = Hour == 0 and 12 or Hour;
-		AmPm = "AM";
+		AmPm = 'AM';
 	end
 
-	return string.format("%s:%02d:%02d %s", Hour, Minute, Second, AmPm);
+	return string.format('%s:%02d:%02d %s', Hour, Minute, Second, AmPm);
 end
 
-local DayMap = {"st", "nd", "rd", "th"}
+local DayMap = {'st', 'nd', 'rd', 'th'}
 local function FormatDay(Day)
 	local LastDigit = Day % 10
 	if LastDigit >= 1 and LastDigit <= 3 then
-		return string.format("%s%s", Day, DayMap[LastDigit])
+		return string.format('%s%s', Day, DayMap[LastDigit])
 	end
 
-	return string.format("%s%s", Day, DayMap[4])
+	return string.format('%s%s', Day, DayMap[4])
 end
 
-local MonthMap = {"January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"}
+local MonthMap = {'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'}
 local function GetLocalDate()
-	local Time = os.date("*t")
+	local Time = os.date('*t')
 	local Day = Time.day
 
 	local Month = nil;
@@ -129,21 +174,21 @@ local function GetLocalDate()
 		Month = MonthMap[Time.month]
 	end
 
-	return string.format("%s %s", Month, FormatDay(Day))
+	return string.format('%s %s', Month, FormatDay(Day))
 end
 
 local function GetLocalDateTime()
-	return GetLocalDate() .. " " .. GetLocalTime()
+	return GetLocalDate() .. ' ' .. GetLocalTime()
 end
 
 task.spawn(function()
 	while task.wait(0.1) and not Library.Unloaded do
-		local Ping = string.split(string.split(game.Stats.Network.ServerStatsItem["Data Ping"]:GetValueString(), " ")[1], ".")[1];
-		local Fps = string.split(game.Stats.Workspace.Heartbeat:GetValueString(), ".")[1];
+		local Ping = string.split(string.split(game.Stats.Network.ServerStatsItem['Data Ping']:GetValueString(), ' ')[1], '.')[1];
+		local Fps = string.split(game.Stats.Workspace.Heartbeat:GetValueString(), '.')[1];
 		local AccountName = LocalPlayer.Name;
 
 		if settings['Watermark'] then
-			Library:SetWatermark(string.format("%s | %s | %s FPS | %s Ping", GetLocalDateTime(), AccountName, Fps, Ping))
+			Library:SetWatermark(string.format('%s | %s | %s FPS | %s Ping', GetLocalDateTime(), AccountName, Fps, Ping))
 		end
 	end
 end)
