@@ -1,8 +1,12 @@
+--#region SCRIPT SETUP
 local StartTick = tick()
 repeat task.wait() until game:IsLoaded()
 
 local HttpService = game:GetService("HttpService")
 local request = http_request or request or HttpPost or syn.request or http.request
+
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
 ------
 local repo = 'https://raw.githubusercontent.com/wally-rblx/LinoriaLib/main/'
 local Library = loadstring(game:HttpGet(repo .. 'Library.lua'))()
@@ -16,10 +20,14 @@ local Tabs = {
 
 local saveFolderName = 'BeaastHub'
 local gameFolderName = 'GrassCuttingIncremental'
-local saveFileName = game:GetService('Players').LocalPlayer.Name .. '.json'
+local saveFileName = LocalPlayer.Name .. '.json'
 local saveFile = saveFolderName .. '/' .. gameFolderName .. '/' .. saveFileName
 
 local defaultSettings = {
+	['AutoCollect'] = {
+		['Grass'] = false,
+		['AntiGrass'] = false
+	},
 	['Keybinds'] = {
 		['menuKeybind'] = 'LeftShift'
 	},
@@ -34,8 +42,9 @@ local settings = HttpService:JSONDecode(readfile(saveFile))
 local function SaveConfig()
 	writefile(saveFile, HttpService:JSONEncode(settings))
 end
+--#endregion
 
---#region WORKING AREA
+ --#region WORKING AREA
 
 --#endregion
 local Misc = Tabs['Main']:AddRightGroupbox('Misc')
