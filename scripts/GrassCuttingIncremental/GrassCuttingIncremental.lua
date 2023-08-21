@@ -51,11 +51,11 @@ local Misc = Tabs['Main']:AddRightGroupbox('Misc')
 
 Misc:AddToggle('watermark', {
 	Text = 'Toggle Watermark',
-	Default = settings['watermark'],
+	Default = settings['Watermark'],
 	Tooltip = 'Toggle Watermark Visibility',
 
 	Callback = function(value)
-		settings['watermark'] = value
+		settings['Watermark'] = value
 		Library:SetWatermarkVisibility(value)
 		SaveConfig()
 	end
@@ -142,7 +142,7 @@ task.spawn(function()
 		local Fps = string.split(game.Stats.Workspace.Heartbeat:GetValueString(), ".")[1];
 		local AccountName = LocalPlayer.Name;
 
-		if settings['watermark'] then
+		if settings['Watermark'] then
 			Library:SetWatermark(string.format("%s | %s | %s FPS | %s Ping", GetLocalDateTime(), AccountName, Fps, Ping))
 		end
 	end
