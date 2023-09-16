@@ -55,8 +55,8 @@ Toggles["hideName"]:OnChanged(function()
 
 	if settings.hideName == false then
 		pcall(function()
-			if workspace[LocalPlayer.Name].Head:FindFirstChild("player_tag") then
-				workspace[LocalPlayer.Name].Head:FindFirstChild("player_tag"):Destroy()
+			if workspace._CHARACTERS[game.Players.LocalPlayer.Name].HumanoidRootPart:FindFirstChild("player_tag") then
+				workspace._CHARACTERS[game.Players.LocalPlayer.Name].HumanoidRootPart:FindFirstChild("player_tag"):Destroy()
 			end
 		end)
 	end
@@ -65,8 +65,8 @@ end)
 
 Misc:AddButton('Reset Name', function()
 	pcall(function()
-		if workspace[LocalPlayer.Name].Head:FindFirstChild("player_tag") then
-			workspace[LocalPlayer.Name].Head:FindFirstChild("player_tag"):Destroy()
+		if workspace._CHARACTERS[game.Players.LocalPlayer.Name].HumanoidRootPart:FindFirstChild("player_tag") then
+			workspace._CHARACTERS[game.Players.LocalPlayer.Name].HumanoidRootPart:FindFirstChild("player_tag"):Destroy()
 		end
 	end)
 end):AddTooltip('Reset your name & class info over the head.')
@@ -75,10 +75,11 @@ coroutine.resume(coroutine.create(function()
 	while task.wait(1) do
 		if settings.hideName then
 			pcall(function()
-				if workspace[game.Players.LocalPlayer.Name].Head:FindFirstChild("player_tag") then
-				   for i, v in next, workspace[game.Players.LocalPlayer.Name].Head["player_tag"]:GetChildren() do
+				if workspace._CHARACTERS[game.Players.LocalPlayer.Name].HumanoidRootPart:FindFirstChild("player_tag") then
+				   for i, v in next, workspace._CHARACTERS[game.Players.LocalPlayer.Name].HumanoidRootPart["player_tag"]:GetChildren() do
 					   v:Destroy()
 				   end
+				   
 				end
 			end)
 		end
