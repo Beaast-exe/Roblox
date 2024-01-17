@@ -22,19 +22,8 @@ elseif placeID == 6299805723 then -- [[ ANIME FIGHTERS SIMULATOR ]] --
 	execute('AnimeFighters/AnimeFightersSimulator.lua')
 elseif placeID == 9292879820 then -- [[ GRASS CUTTING INCREMENTAL ]] --
 	execute('GrassCuttingIncremental/GrassCuttingIncremental.lua')
+elseif placeID == 14433762945 then -- [[ ANIME CHAMPIONS SIMULATOR ]] --
+	execute('AnimeChampions/AnimeChampionsSimulator.lua')
+elseif placeID == 15367026228 then
+	execute('AnimeSouls/AnimeSoulsX.lua')
 end
-
---[[
--- // SWORD FIGHTERS SIMULATOR \\ --
-if placeID == 11040063484 then
-	loadstring(game:HttpGet('https://raw.githubusercontent.com/Beaast-exe/Roblox/master/scripts/SwordFighters/SwordFighters.lua'))()
--- // ANIME SOULS SIMULATOR \\ --
-elseif placeID == 11542692507 then
-	loadstring(game:HttpGet('https://raw.githubusercontent.com/Beaast-exe/Roblox/master/scripts/AnimeSouls/AnimeSoulsSimulator.lua'))()
--- // ANIME FIGHTERS SIMULATOR \\ --
-elseif placeID == 6299805723 then
-	loadstring(game:HttpGet('https://raw.githubusercontent.com/Beaast-exe/Roblox/master/scripts/AnimeFighters/AnimeFightersSimulator.lua'))()
-elseif placeID == 9292879820 then
-	loadstring(game:HttpGet('https://raw.githubusercontent.com/Beaast-exe/Roblox/master/scripts/GrassCuttingIncremental/GrassCuttingIncremental.lua'))()
-end
-]]--
