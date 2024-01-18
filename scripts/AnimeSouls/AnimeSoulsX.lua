@@ -24,13 +24,7 @@ local saveFile = saveFolderName .. '/' .. gameFolderName .. '/' .. saveFileName
 
 local defaultSettings = {
 	['AutoFarm'] = {
-		['Enabled'] = false,
-		['AttackAll'] = false,
-		['IgnoreChests'] = false,
-		['AutoClick'] = false,
-		['AutoCollect'] = false,
-		['AutoUltSkip'] = false,
-		['BoostPetSpeed'] = false
+		['Enabled'] = false
 	},
 	['AutoDefense'] = {
 		['Enabled'] = false
@@ -66,7 +60,7 @@ local TweenService = game:GetService('TweenService')
 local player = Players.LocalPlayer
 local originalCameraZoomDistance = player.CameraMaxZoomDistance
 local character = player.Character
-local starterPlayerScriptsFolder = player.PlayerScripts.StarterPlayerScriptsFolder
+--local starterPlayerScriptsFolder = player.PlayerScripts.StarterPlayerScriptsFolder
 
 local PlayerGui = player.PlayerGui
 ---
@@ -88,13 +82,13 @@ function GenEnemyStats()
 	end
 end
 
-local GetClosestEnemies = (newcclosure(function()
+local getClosestEnemy = (newcclosure(function()
 	local distance = 9e9
 	local enemy
 
-	for i, v in pairs(Workspace['_ENEMIES'][player:GetAttribute("CurrentArea")]:GetChildren()) do
+	for i, v in pairs(Workspace['_ENEMIES']['4']:GetChildren()) do
 		if v:IsA("Model") and v:FindFirstChild("HumanoidRootPart") then
-			local mag = (character.HumanoidRootPart.Position - v.HumanoidRootPart.Position).magnitude
+			local mag = (game.Players.LocalPlayer.character.HumanoidRootPart.Position - v.HumanoidRootPart.Position).magnitude
 
 			if mag < distance then
 				distance = mag
@@ -102,38 +96,48 @@ local GetClosestEnemies = (newcclosure(function()
 			end
 		end
 	end
+
+	return enemy
 end))
 
-function findNearestEnemy()
-	local playerWorld = player.World.Value
-	local Closest = nil
-	local ClosestDistance = math.huge
+function getEnemy(world)
+	local distance = 9e9
+	local enemy = nil
 
-	if Workspace.Worlds[playerWorld]:FindFirstChild('Enemies') then
-		local enemyModels = Workspace['_ENEMIES'][player:GetAttribute("CurrentArea")]:GetChildren(); -- Workspace.Worlds[playerWorld].Enemies:GetChildren()
+	for i, v in pairs(Workspace['_ENEMIES'][world]:GetChildren()) do
+		if v:IsA("Model") and v:FindFirstChild("HumanoidRootPart") then
+			local mag = (game.Players.LocalPlayer.Character.HumanoidRootPart.Position - v.HumanoidRootPart.Position).magnitude
 
-		for _, targetEnemy in ipairs(enemyModels) do
-			if targetEnemy:IsA("Model") and targetEnemy:FindFirstChild("HumanoidRootPart") then
-				local Distance = (character.HumanoidRootPart.Position - targetEnemy.HumanoidRootPart.Position).magnitude
-
-				if Distance <= 1000 and Distance < ClosestDistance then
-					Closest = targetEnemy
-					ClosestDistance = Distance
-				end
+			if mag <= distance then
+				distance = mag
+				enemy = v
 			end
 		end
-
-		if Closest == nil then ClosestDistance = math.huge end
-
-		return Closest, ClosestDistance
 	end
+
+	if enemy == nil then distance = 9e9 end
+	return enemy
 end
+
+local lastClosest = nil
 
 function Initialize()
 	GenEnemyStats()
 	task.wait(0.5)
 	Library:Notify(string.format('Script Loaded in %.2f second(s)!', tick() - StartTick), 5)
 end
+
+local AutoFarm = Tabs['Main']:AddLeftGroupbox('Auto Farm')
+AutoFarm:AddToggle('enableAutoFarm', {
+	Text = 'Auto Farm',
+	Default = settings['AutoFarm']['Enabled'],
+	Tooltip = 'Enable Auto Farm',
+
+	Callback = function(value)
+		settings['AutoFarm']['Enabled'] = value
+		SaveConfig()
+	end
+})
 
 local AutoDefense = Tabs['Main']:AddRightGroupbox('Auto Defense')
 AutoDefense:AddToggle('enableAutoDefense', {
@@ -149,24 +153,60 @@ AutoDefense:AddToggle('enableAutoDefense', {
 
 Initialize()
 
+player:GetAttributeChangedSignal("CurrentArea"):Connect(function()
+	table.clear(Enemies)
+	
+	task.wait(0.1)
+	for i, v in pairs(Workspace['_ENEMIES'][player:GetAttribute("CurrentArea")]:GetChildren()) do
+		if table.find(Enemies, v.Name) then
+			
+		else
+			table.insert(Enemies, v.Name)
+		end
+	end
+end)
+
+-- // AUTO FARM
+task.spawn(function()
+	while task.wait() and not Library.Unloaded do
+		if settings['AutoFarm']['Enabled'] then
+			local enemy = getClosestEnemy()
+
+			if enemy:FindFirstChild('HumanoidRootPart') then
+				character.HumanoidRootPart.CFrame = getClosestEnemy().HumanoidRootPart.CFrame
+
+				local args = {[1] = {[1] = {[1] = "\3",[2] = "Click",[3] = "Execute",[4] = getClosestEnemy()}}}
+				game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvent"):FireServer(unpack(args))
+
+				task.wait(0.3)
+			end
+		end
+	end
+end)
+
 -- // AUTO DEFENSE
 task.spawn(function()
 	while task.wait() and not Library.Unloaded do
-		local enemies = Workspace['_ENEMIES']['Defense']
+		if not settings['AutoDefense']['Enabled'] then return end
+		local enemy = getEnemy('Defense')
 		
-		if #enemies > 0 then
-			for _, enemy in ipairs(enemies:GetChildren()) do
-				pcall(function()
-					character.HumanoidRootPart.CFrame = enemy.HumanoidRootPart.CFrame
+		if enemy == nil then return end
+		if enemy:FindFirstChild("HumanoidRootPart") then
+			character.HumanoidRootPart.CFrame = enemy.HumanoidRootPart.CFrame
 
-					repeat
-						character.HumanoidRootPart.CFrame = enemy.HumanoidRootPart.CFrame
-					until Library.Unloaded
-					or enemy:FindFirstChild("HumanoidRootPart") == nil
-					or enemy:FindFirstChild("_STATS") == nil
-					or not settings['AutoDefense']['Enabled']
-				end)
-			end
+			local args = {
+				[1] = {
+					[1] = {
+						[1] = "\3",
+						[2] = "Click",
+						[3] = "Execute",
+						[4] = enemy
+					}
+				}
+			}
+
+			game:GetService("ReplicatedStorage").RemoteEvent:FireServer(unpack(args))
+			task.wait(0.3)
 		end
 	end
 end)
