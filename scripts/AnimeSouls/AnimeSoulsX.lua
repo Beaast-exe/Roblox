@@ -4,8 +4,6 @@ repeat task.wait() until game:IsLoaded()
 local StartTick = tick()
 
 local HttpService = game:GetService('HttpService')
-local request = http_request or request or HttpPost or syn.request or http.request
-------
 local repo = 'https://raw.githubusercontent.com/violin-suzutsuki/LinoriaLib/main/'
 local Library = loadstring(game:HttpGet(repo .. 'Library.lua'))()
 local ThemeManager = loadstring(game:HttpGet(repo .. 'addons/ThemeManager.lua'))()
@@ -13,8 +11,7 @@ local ThemeManager = loadstring(game:HttpGet(repo .. 'addons/ThemeManager.lua'))
 local Window = Library:CreateWindow({ Title = 'Beaast Hub | Anime Souls X', Center = true, AutoShow = true })
 local Tabs = {
 	['Main'] = Window:AddTab('Main'),
-	['Dungeon'] = Window:AddTab('Dungeon'),
-	['UI Settings'] = Window:AddTab('UI Settings'),
+	['UI Settings'] = Window:AddTab('UI Settings')
 }
 
 local saveFolderName = 'BeaastHub'
@@ -26,16 +23,16 @@ local defaultSettings = {
 	['AutoFarm'] = {
 		['Enabled'] = false
 	},
+	['AutoDungeon'] = {
+		['Enabled'] = false
+	},
 	['AutoDefense'] = {
 		['Enabled'] = false
 	},
 	['Keybinds'] = {
-		['menuKeybind'] = 'LeftShift',
-		['AutoFarm'] = 'Unknown'
+		['menuKeybind'] = 'LeftShift'
 	},
-	watermark = false,
-	webhookLink = 'Webhook Link',
-	webhookMentionId = 'Mention ID'
+	watermark = false
 }
 
 if not isfolder(saveFolderName) then makefolder(saveFolderName) end
@@ -56,39 +53,21 @@ local VirtualUser = game:GetService('VirtualUser')
 local VirtualInputManager = game:GetService('VirtualInputManager')
 local RunService = game:GetService('RunService')
 local TweenService = game:GetService('TweenService')
+local manaCrystal = Vector3.new(230.972, 1080.2, 4611.74)
 
 local player = Players.LocalPlayer
-local originalCameraZoomDistance = player.CameraMaxZoomDistance
 local character = player.Character
---local starterPlayerScriptsFolder = player.PlayerScripts.StarterPlayerScriptsFolder
-
 local PlayerGui = player.PlayerGui
----
+local playerHrp = character and character:FindFirstChild("HumanoidRootPart")
 
-local defenseGui = PlayerGui["_CENTER"]['Defense']
----
-
-local isPlayerInDefense = false
-
--- // STORAGE
-local Enemies = {}
-function GenEnemyStats()
-	for i, v in pairs(Workspace['_ENEMIES'][player:GetAttribute("CurrentArea")]:GetChildren()) do
-		if table.find(Enemies, v.Name) then
-			
-		else
-			table.insert(Enemies, v.Name)
-		end
-	end
-end
-
-local getClosestEnemy = (newcclosure(function()
-	local distance = 9e9
+-- // FUNCTIONS
+local getClosestEnemy = (newcclosure(function(world)
+	local distance = 1000
 	local enemy
 
-	for i, v in pairs(Workspace['_ENEMIES']['4']:GetChildren()) do
+	for i, v in pairs(Workspace._ENEMIES[world]:GetChildren()) do
 		if v:IsA("Model") and v:FindFirstChild("HumanoidRootPart") then
-			local mag = (game.Players.LocalPlayer.character.HumanoidRootPart.Position - v.HumanoidRootPart.Position).magnitude
+			local mag = (character.HumanoidRootPart.Position - v.HumanoidRootPart.Position).magnitude
 
 			if mag < distance then
 				distance = mag
@@ -100,50 +79,59 @@ local getClosestEnemy = (newcclosure(function()
 	return enemy
 end))
 
-function getEnemy(world)
+local getClosestEnemyDungeon = (newcclosure(function()
 	local distance = 9e9
-	local enemy = nil
+	local enemy
 
-	for i, v in pairs(Workspace['_ENEMIES'][world]:GetChildren()) do
-		if v:IsA("Model") and v:FindFirstChild("HumanoidRootPart") then
-			local mag = (game.Players.LocalPlayer.Character.HumanoidRootPart.Position - v.HumanoidRootPart.Position).magnitude
+	for i, v in pairs(Workspace._ENEMIES['Dungeon']['Easy']:GetDescendants()) do
+		if v:IsA("Model") and v:FindFirstChild("HumanoidRootPart") and tonumber(v['_STATS']['CurrentHP'].Value) > 0 then
+			local mag = (character.HumanoidRootPart.Position - v.HumanoidRootPart.Position).magnitude
 
-			if mag <= distance then
+			if mag < distance then
 				distance = mag
 				enemy = v
 			end
 		end
 	end
 
-	if enemy == nil then distance = 9e9 end
 	return enemy
-end
+end))
 
-local lastClosest = nil
+local getClosestEnemyDefense = (newcclosure(function()
+	local distance = 1000
+	local enemy
+
+	for i, v in pairs(Workspace._ENEMIES['Defense']:GetChildren()) do
+		if v:IsA("Model") and v:FindFirstChild("HumanoidRootPart") and tonumber(v['_STATS']['CurrentHP'].Value) > 0 then
+			local mag = (manaCrystal - v.HumanoidRootPart.Position).magnitude
+
+			if mag < distance then
+				distance = mag
+				enemy = v
+			end
+		end
+	end
+
+	return enemy
+end))
 
 function Initialize()
-	GenEnemyStats()
+	--game.Players.LocalPlayer:SetAttribute("Teleporting", true)
+	print("Loaded Beaast Hub")
 	task.wait(0.5)
+
+	--for k, v in pairs(player:GetAttributes()) do
+	--	print(k, v)
+	--end
+
 	Library:Notify(string.format('Script Loaded in %.2f second(s)!', tick() - StartTick), 5)
 end
-
-local AutoFarm = Tabs['Main']:AddLeftGroupbox('Auto Farm')
-AutoFarm:AddToggle('enableAutoFarm', {
-	Text = 'Auto Farm',
-	Default = settings['AutoFarm']['Enabled'],
-	Tooltip = 'Enable Auto Farm',
-
-	Callback = function(value)
-		settings['AutoFarm']['Enabled'] = value
-		SaveConfig()
-	end
-})
 
 local AutoDefense = Tabs['Main']:AddRightGroupbox('Auto Defense')
 AutoDefense:AddToggle('enableAutoDefense', {
 	Text = 'Auto Defense',
 	Default = settings['AutoDefense']['Enabled'],
-	Tooltip = 'Enable Auto Defense',
+	Tooltip = 'Enable Auto Farm',
 
 	Callback = function(value)
 		settings['AutoDefense']['Enabled'] = value
@@ -151,63 +139,142 @@ AutoDefense:AddToggle('enableAutoDefense', {
 	end
 })
 
-Initialize()
+local createdDefense = false
 
-player:GetAttributeChangedSignal("CurrentArea"):Connect(function()
-	table.clear(Enemies)
+function AbrirEntrarDefense()
+	if not createdDefense then
+		local argsOpen = {
+			[1] = {
+				[1] = {
+					[1] = "\3",
+					[2] = "Defense",
+					[3] = "Open",
+					[4] = true
+				}
+			}
+		}
 	
-	task.wait(0.1)
-	for i, v in pairs(Workspace['_ENEMIES'][player:GetAttribute("CurrentArea")]:GetChildren()) do
-		if table.find(Enemies, v.Name) then
-			
-		else
-			table.insert(Enemies, v.Name)
+		local argsJoin = {
+			[1] = {
+				[1] = {
+					[1] = "\3",
+					[2] = "Defense",
+					[3] = "Join"
+				}
+			}
+		}
+		
+		ReplicatedStorage.RemoteEvent:FireServer(unpack(argsOpen))
+		task.wait(5)
+		ReplicatedStorage.RemoteEvent:FireServer(unpack(argsJoin))
+
+		createdDefense = true
+		task.wait(60)
+		createdDefense = false
+	end
+end
+
+task.spawn(function()
+	while task.wait() and not Library.Unloaded do
+		if settings['AutoDefense']['Enabled'] then
+			AbrirEntrarDefense()
 		end
 	end
 end)
 
--- // AUTO FARM
 task.spawn(function()
 	while task.wait() and not Library.Unloaded do
-		if settings['AutoFarm']['Enabled'] then
-			local enemy = getClosestEnemy()
+		if settings['AutoDefense']['Enabled'] then
+			local enemy = getClosestEnemyDefense()
 
-			if enemy:FindFirstChild('HumanoidRootPart') then
-				character.HumanoidRootPart.CFrame = getClosestEnemy().HumanoidRootPart.CFrame
+			if #Workspace._ENEMIES.Defense:GetChildren() <= 0 then
+				local tweeninfo = TweenInfo.new(0.5, Enum.EasingStyle.Linear)
+				local cf = CFrame.new(manaCrystal)
+				local a = TweenService:Create(character.HumanoidRootPart, tweeninfo, {CFrame = cf})
+				a:Play()
+				character.HumanoidRootPart.CFrame = CFrame.new(manaCrystal)
+			end
 
-				local args = {[1] = {[1] = {[1] = "\3",[2] = "Click",[3] = "Execute",[4] = getClosestEnemy()}}}
-				game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvent"):FireServer(unpack(args))
+			if enemy and enemy:FindFirstChild("HumanoidRootPart") then
+				if character and character:FindFirstChild("HumanoidRootPart") then
 
-				task.wait(0.3)
+					local tweeninfo = TweenInfo.new(0.5, Enum.EasingStyle.Linear)
+					local cf = enemy.HumanoidRootPart.CFrame
+					local a = TweenService:Create(character.HumanoidRootPart, tweeninfo, {CFrame = cf})
+					a:Play()
+
+					local args = {
+						[1] = {
+							[1] = {
+								[1] = "\3",
+								[2] = "Click",
+								[3] = "Execute",
+								[4] = enemy
+							}
+						}
+					}
+
+					ReplicatedStorage.RemoteEvent:FireServer(unpack(args))
+				end
 			end
 		end
+		--task.wait(1)
 	end
 end)
 
--- // AUTO DEFENSE
+local AutoDungeon = Tabs['Main']:AddLeftGroupbox('Auto Dungeon')
+AutoDungeon:AddToggle('enableAutoDungeon', {
+	Text = 'Auto Dungeon',
+	Default = settings['AutoDungeon']['Enabled'],
+	Tooltip = 'Enable Auto Farm',
+
+	Callback = function(value)
+		settings['AutoDungeon']['Enabled'] = value
+		SaveConfig()
+	end
+})
+
 task.spawn(function()
 	while task.wait() and not Library.Unloaded do
-		if not settings['AutoDefense']['Enabled'] then return end
-		local enemy = getEnemy('Defense')
-		
-		if enemy == nil then return end
-		if enemy:FindFirstChild("HumanoidRootPart") then
-			character.HumanoidRootPart.CFrame = enemy.HumanoidRootPart.CFrame
-
-			local args = {
+		if settings['AutoDungeon']['Enabled'] then
+			local argsJoin = {
 				[1] = {
 					[1] = {
 						[1] = "\3",
-						[2] = "Click",
-						[3] = "Execute",
-						[4] = enemy
+						[2] = "Dungeon",
+						[3] = "Join",
+						[4] = "Easy"
 					}
 				}
 			}
+			
+			ReplicatedStorage.RemoteEvent:FireServer(unpack(argsJoin))
+			local enemy = getClosestEnemyDungeon()
 
-			game:GetService("ReplicatedStorage").RemoteEvent:FireServer(unpack(args))
-			task.wait(0.3)
+			if enemy and enemy:FindFirstChild("HumanoidRootPart") then
+				if character and character:FindFirstChild("HumanoidRootPart") then
+
+					local tweeninfo = TweenInfo.new(0.5, Enum.EasingStyle.Linear)
+					local cf = enemy.HumanoidRootPart.CFrame
+					local a = TweenService:Create(character.HumanoidRootPart, tweeninfo, {CFrame = cf})
+					a:Play()
+
+					local args = {
+						[1] = {
+							[1] = {
+								[1] = "\3",
+								[2] = "Click",
+								[3] = "Execute",
+								[4] = enemy
+							}
+						}
+					}
+
+					ReplicatedStorage.RemoteEvent:FireServer(unpack(args))
+				end
+			end
 		end
+		--task.wait(1)
 	end
 end)
 
@@ -284,6 +351,8 @@ end
 local function GetLocalDateTime()
 	return GetLocalDate() .. " " .. GetLocalTime()
 end
+
+Initialize()
 
 task.spawn(function()
 	while task.wait(0.1) and not Library.Unloaded do
