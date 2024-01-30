@@ -21,7 +21,8 @@ local saveFile = saveFolderName .. '/' .. gameFolderName .. '/' .. saveFileName
 
 local defaultSettings = {
 	['AutoFarm'] = {
-		['Enabled'] = false
+		['Enabled'] = false,
+		['World'] = "Cursed Zone"
 	},
 	['AutoDungeon'] = {
 		['Enabled'] = false
@@ -53,37 +54,66 @@ local VirtualUser = game:GetService('VirtualUser')
 local VirtualInputManager = game:GetService('VirtualInputManager')
 local RunService = game:GetService('RunService')
 local TweenService = game:GetService('TweenService')
-local manaCrystal = Vector3.new(230.972, 1080.2, 4611.74)
 
 local player = Players.LocalPlayer
 local character = player.Character
 local PlayerGui = player.PlayerGui
-local playerHrp = character and character:FindFirstChild("HumanoidRootPart")
+
+local manaCrystal = Vector3.new(230.972, 1080.2, 4611.74)
+local worldsNames = {
+	"Cursed Zone",
+	"Bizarre Area",
+	"Ninja Village",
+	"Hunter Zone",
+	"Spirit Society",
+	"Dragon City",
+	"Ghoul Town",
+	"Marine Station",
+	"Leveling City",
+	"Titan District"
+}
+local worldsTable = {
+	["Cursed Zone"] = "1",
+	["Bizarre Area"] = "2",
+	["Ninja Village"] = "3",
+	["Hunter Zone"] = "4",
+	["Spirit Society"] = "5",
+	["Dragon City"] = "6",
+	["Ghoul Town"] = "7",
+	["Marine Station"] = "8",
+	["Leveling City"] = "9",
+	["Titan District"] = "10"
+}
+
+local createdDefense = false
+local minute = os.date("%M")
+local playerMode
+
+function Initialize()
+	Library:Notify(string.format('Script Loaded in %.2f second(s)!', tick() - StartTick), 5)
+	print("Loaded Beaast Hub")
+end
+
+task.spawn(function()
+	while task.wait() and not Library.Unloaded do
+		playerMode = player:GetAttribute("Mode")
+		player.GameplayPaused = false
+	end
+end)
+
+task.spawn(function()
+	while not Library.Unloaded do
+		minute = os.date("%M")
+		task.wait(0.1)
+	end
+end)
 
 -- // FUNCTIONS
-local getClosestEnemy = (newcclosure(function(world)
+local getClosestEnemyDungeon = (newcclosure(function(dungeon)
 	local distance = 1000
 	local enemy
 
-	for i, v in pairs(Workspace._ENEMIES[world]:GetChildren()) do
-		if v:IsA("Model") and v:FindFirstChild("HumanoidRootPart") then
-			local mag = (character.HumanoidRootPart.Position - v.HumanoidRootPart.Position).magnitude
-
-			if mag < distance then
-				distance = mag
-				enemy = v
-			end
-		end
-	end
-
-	return enemy
-end))
-
-local getClosestEnemyDungeon = (newcclosure(function()
-	local distance = 9e9
-	local enemy
-
-	for i, v in pairs(Workspace._ENEMIES['Dungeon']['Easy']:GetDescendants()) do
+	for i, v in pairs(Workspace._ENEMIES['Dungeon'][dungeon]:GetDescendants()) do
 		if v:IsA("Model") and v:FindFirstChild("HumanoidRootPart") and tonumber(v['_STATS']['CurrentHP'].Value) > 0 then
 			local mag = (character.HumanoidRootPart.Position - v.HumanoidRootPart.Position).magnitude
 
@@ -115,17 +145,94 @@ local getClosestEnemyDefense = (newcclosure(function()
 	return enemy
 end))
 
-function Initialize()
-	--game.Players.LocalPlayer:SetAttribute("Teleporting", true)
-	print("Loaded Beaast Hub")
-	task.wait(0.5)
+local getEnemies = (newcclosure(function(world)
+	local distance = 1000
+	local enemy
 
-	--for k, v in pairs(player:GetAttributes()) do
-	--	print(k, v)
-	--end
+	for i, v in pairs(Workspace['_ENEMIES'][world]:GetChildren()) do
+		if v:IsA("Model") and v:FindFirstChild("HumanoidRootPart") and tonumber(v['_STATS']['CurrentHP'].Value) > 0 then
+			local mag = (character.HumanoidRootPart.Position - v.HumanoidRootPart.Position).magnitude
 
-	Library:Notify(string.format('Script Loaded in %.2f second(s)!', tick() - StartTick), 5)
-end
+			if mag < distance then
+				distance = mag
+				enemy = v
+			end
+		end
+	end
+
+	return enemy
+end))
+
+local AutoFarm = Tabs['Main']:AddLeftGroupbox('Auto Farm')
+AutoFarm:AddDropdown('autoFarmWorld', {
+	Text = 'Auto Farm World',
+	Tooltip = 'Select world to auto farm',
+	Default = settings['AutoFarm']['World'],
+	Multi = false,
+	Values = worldsNames,
+
+	Callback = function(value)
+		settings['AutoFarm']['World'] = worldsTable[value]
+		print(settings['AutoFarm']['World'])
+	end
+})
+
+AutoFarm:AddToggle('enableAutoFarm', {
+	Text = 'Enable Auto Farm',
+	Default = settings['AutoFarm']['Enabled'],
+	Tooltip = 'Enable Auto Farm',
+
+	Callback = function(value)
+		settings['AutoFarm']['Enabled'] = value
+		SaveConfig()
+	end
+})
+
+task.spawn(function()
+	while task.wait() and not Library.Unloaded do
+		if settings['AutoFarm']['Enabled'] then
+			local enemy = getEnemies(settings['AutoFarm']['World'])
+				if enemy == nil then return end
+				-- 	repeat
+				-- 		enemy = getEnemies(settings['AutoFarm']['World'])
+				-- 	until enemy ~= nil
+				-- 	or getEnemies(settings['AutoFarm']['World']) ~= nil
+				-- end
+			-- 	local args = {
+			-- 		[1] = {
+			-- 			[1] = {
+			-- 				[1] = "\3",
+			-- 				[2] = "Teleport",
+			-- 				[3] = "To",
+			-- 				[4] = tonumber(settings['AutoFarm']['World'])
+			-- 			}
+    		-- 		}
+			-- 	}
+
+			-- 	ReplicatedStorage.RemoteEvent:FireServer(unpack(args))
+			-- 	task.wait(5)
+			-- else
+				local tweeninfo = TweenInfo.new(0.5, Enum.EasingStyle.Linear)
+				local cf = enemy.HumanoidRootPart.CFrame
+				local a = TweenService:Create(character.HumanoidRootPart, tweeninfo, {CFrame = cf})
+				a:Play()
+
+				local args = {
+					[1] = {
+						[1] = {
+							[1] = "\3",
+							[2] = "Click",
+							[3] = "Execute",
+							[4] = enemy
+						}
+					}
+				}
+
+				ReplicatedStorage.RemoteEvent:FireServer(unpack(args))
+			-- end
+		end
+	end
+end)
 
 local AutoDefense = Tabs['Main']:AddRightGroupbox('Auto Defense')
 AutoDefense:AddToggle('enableAutoDefense', {
@@ -139,44 +246,30 @@ AutoDefense:AddToggle('enableAutoDefense', {
 	end
 })
 
-local createdDefense = false
-
 function AbrirEntrarDefense()
 	if not createdDefense then
+		--if playerMode ~= "Defense" and playerMode ~= "Dungeon" then
 		local argsOpen = {
-			[1] = {
-				[1] = {
-					[1] = "\3",
-					[2] = "Defense",
-					[3] = "Open",
-					[4] = true
-				}
-			}
-		}
+			[1] = { [1] = { [1] = "\3", [2] = "Defense", [3] = "Open", [4] = true } } }
 	
-		local argsJoin = {
-			[1] = {
-				[1] = {
-					[1] = "\3",
-					[2] = "Defense",
-					[3] = "Join"
-				}
-			}
-		}
-		
+		local argsJoin = { [1] = { [1] = { [1] = "\3", [2] = "Defense", [3] = "Join" } } }
+
 		ReplicatedStorage.RemoteEvent:FireServer(unpack(argsOpen))
-		task.wait(5)
+		task.wait(3)
 		ReplicatedStorage.RemoteEvent:FireServer(unpack(argsJoin))
+		task.wait(3)
 
 		createdDefense = true
 		task.wait(60)
 		createdDefense = false
+		--end
 	end
 end
 
 task.spawn(function()
 	while task.wait() and not Library.Unloaded do
 		if settings['AutoDefense']['Enabled'] then
+			--if playerMode == "Defense" or playerMode == "Dungeon" then return end
 			AbrirEntrarDefense()
 		end
 	end
@@ -185,14 +278,17 @@ end)
 task.spawn(function()
 	while task.wait() and not Library.Unloaded do
 		if settings['AutoDefense']['Enabled'] then
+			--if playerMode == "Dungeon" then return end
 			local enemy = getClosestEnemyDefense()
 
-			if #Workspace._ENEMIES.Defense:GetChildren() <= 0 then
-				local tweeninfo = TweenInfo.new(0.5, Enum.EasingStyle.Linear)
-				local cf = CFrame.new(manaCrystal)
-				local a = TweenService:Create(character.HumanoidRootPart, tweeninfo, {CFrame = cf})
-				a:Play()
-				character.HumanoidRootPart.CFrame = CFrame.new(manaCrystal)
+			if #Workspace['_ENEMIES']['Defense']:GetChildren() <= 0 then
+				--if playerMode ~= "Defense" then
+					local tweeninfo = TweenInfo.new(0.5, Enum.EasingStyle.Linear)
+					local cf = CFrame.new(manaCrystal)
+					local a = TweenService:Create(character.HumanoidRootPart, tweeninfo, {CFrame = cf})
+					a:Play()
+					character.HumanoidRootPart.CFrame = CFrame.new(manaCrystal)
+				--end
 			end
 
 			if enemy and enemy:FindFirstChild("HumanoidRootPart") then
@@ -203,22 +299,15 @@ task.spawn(function()
 					local a = TweenService:Create(character.HumanoidRootPart, tweeninfo, {CFrame = cf})
 					a:Play()
 
-					local args = {
-						[1] = {
-							[1] = {
-								[1] = "\3",
-								[2] = "Click",
-								[3] = "Execute",
-								[4] = enemy
-							}
-						}
-					}
+					-- character.HumanoidRootPart.CFrame = enemy.HumanoidRootPart.CFrame
+
+					local args = { [1] = { [1] = { [1] = "\3", [2] = "Click", [3] = "Execute", [4] = enemy } } }
 
 					ReplicatedStorage.RemoteEvent:FireServer(unpack(args))
 				end
 			end
 		end
-		--task.wait(1)
+		--task.wait()
 	end
 end)
 
@@ -234,47 +323,62 @@ AutoDungeon:AddToggle('enableAutoDungeon', {
 	end
 })
 
+-- // TP TO DUNGEON
 task.spawn(function()
 	while task.wait() and not Library.Unloaded do
 		if settings['AutoDungeon']['Enabled'] then
-			local argsJoin = {
-				[1] = {
-					[1] = {
-						[1] = "\3",
-						[2] = "Dungeon",
-						[3] = "Join",
-						[4] = "Easy"
-					}
-				}
-			}
-			
-			ReplicatedStorage.RemoteEvent:FireServer(unpack(argsJoin))
-			local enemy = getClosestEnemyDungeon()
+			if minute == '00' or minute == '0' or minute == '30' then
+				if playerMode == "Dungeon" then return end
+				local argsJoin = { [1] = { [1] = { [1] = "\3", [2] = "Dungeon", [3] = "Join", [4] = 'Easy' }}}
+				ReplicatedStorage.RemoteEvent:FireServer(unpack(argsJoin))
+			else
+				repeat
+					task.wait()
+					minute = os.date("%M")
+				until minute == '00' or minute == '0' or minute == '30' or Library.Unloaded or not settings['AutoDungeon']['Enabled']
+			end
+		end
+	end
+end)
 
-			if enemy and enemy:FindFirstChild("HumanoidRootPart") then
-				if character and character:FindFirstChild("HumanoidRootPart") then
+-- // AUTO DUNGEON
+task.spawn(function()
+	while task.wait() and not Library.Unloaded do
+		if settings['AutoDungeon']['Enabled'] then
+			if minute == '00' or minute == '0' or minute == '30' or Library.Unloaded or not settings['AutoDungeon']['Enabled'] then
+				repeat
+					task.wait()
+					minute = os.date("%M")
+				until minute == '01' or minute == '1' or minute == '31'
+			else
+				local enemy = getClosestEnemyDungeon('Easy')
 
-					local tweeninfo = TweenInfo.new(0.5, Enum.EasingStyle.Linear)
-					local cf = enemy.HumanoidRootPart.CFrame
-					local a = TweenService:Create(character.HumanoidRootPart, tweeninfo, {CFrame = cf})
-					a:Play()
+				if enemy and enemy:FindFirstChild("HumanoidRootPart") then
+					if character and character:FindFirstChild("HumanoidRootPart") then
 
-					local args = {
-						[1] = {
+						local tweeninfo = TweenInfo.new(0.5, Enum.EasingStyle.Linear)
+						local cf = enemy.HumanoidRootPart.CFrame
+						local a = TweenService:Create(character.HumanoidRootPart, tweeninfo, {CFrame = cf})
+						a:Play()
+
+						-- character.HumanoidRootPart.CFrame = enemy.CFrame
+
+						local args = {
 							[1] = {
-								[1] = "\3",
-								[2] = "Click",
-								[3] = "Execute",
-								[4] = enemy
+								[1] = {
+									[1] = "\3",
+									[2] = "Click",
+									[3] = "Execute",
+									[4] = enemy
+								}
 							}
 						}
-					}
 
-					ReplicatedStorage.RemoteEvent:FireServer(unpack(args))
+						ReplicatedStorage.RemoteEvent:FireServer(unpack(args))
+					end
 				end
 			end
 		end
-		--task.wait(1)
 	end
 end)
 
@@ -299,6 +403,11 @@ MenuGroup:AddLabel('Menu bind'):AddKeyPicker('MenuKeybind', {
 	end
 })
 
+local OtherScripts = Tabs['UI Settings']:AddLeftGroupbox('Other Scripts')
+OtherScripts:AddButton('Banana Hub', function()
+	task.spawn(loadstring(game:HttpGet('https://raw.githubusercontent.com/diepedyt/bui/main/temporynewkeysystem.lua', true)))
+end)
+
 Library.ToggleKeybind = Options.MenuKeybind
 
 -- Addons:
@@ -307,61 +416,9 @@ ThemeManager:SetFolder('BeaastHub')
 local settingsRightBox = Tabs["UI Settings"]:AddRightGroupbox("Themes")
 ThemeManager:ApplyToGroupbox(settingsRightBox)
 
-local function GetLocalTime()
-	local Time = os.date("*t")
-	local Hour = Time.hour;
-	local Minute = Time.min;
-	local Second = Time.sec;
-
-	local AmPm = nil;
-	if Hour >= 12 then
-		Hour = Hour - 12;
-		AmPm = "PM";
-	else
-		Hour = Hour == 0 and 12 or Hour;
-		AmPm = "AM";
-	end
-
-	return string.format("%s:%02d:%02d %s", Hour, Minute, Second, AmPm);
-end
-
-local DayMap = {"st", "nd", "rd", "th"}
-local function FormatDay(Day)
-	local LastDigit = Day % 10
-	if LastDigit >= 1 and LastDigit <= 3 then
-		return string.format("%s%s", Day, DayMap[LastDigit])
-	end
-
-	return string.format("%s%s", Day, DayMap[4])
-end
-
-local MonthMap = {"January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"}
-local function GetLocalDate()
-	local Time = os.date("*t")
-	local Day = Time.day
-
-	local Month = nil;
-	if Time.month >= 1 and Time.month <= 12 then
-		Month = MonthMap[Time.month]
-	end
-
-	return string.format("%s %s", Month, FormatDay(Day))
-end
-
-local function GetLocalDateTime()
-	return GetLocalDate() .. " " .. GetLocalTime()
-end
+game:GetService('Players').LocalPlayer.Idled:Connect(function()
+	VirtualUser:CaptureController()
+	VirtualUser:ClickButton2(Vector2.new())
+end)
 
 Initialize()
-
-task.spawn(function()
-	while task.wait(0.1) and not Library.Unloaded do
-		local Ping = string.split(string.split(game.Stats.Network.ServerStatsItem["Data Ping"]:GetValueString(), " ")[1], ".")[1];
-		local Fps = string.split(game.Stats.Workspace.Heartbeat:GetValueString(), ".")[1];
-		local AccountName = player.Name;
-
-		if settings['watermark'] then
-			Library:SetWatermark(string.format("%s | %s | %s FPS | %s Ping", GetLocalDateTime(), AccountName, Fps, Ping))
-		end
-	end
-end)
