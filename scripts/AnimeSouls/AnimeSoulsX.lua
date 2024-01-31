@@ -511,6 +511,10 @@ OtherScripts:AddButton('Banana Hub', function()
 	task.spawn(loadstring(game:HttpGet('https://raw.githubusercontent.com/diepedyt/bui/main/temporynewkeysystem.lua', true)))
 end)
 
+OtherScripts:AddButton('Simple Spy', function()
+	task.spawn(loadstring(game:HttpGet('https://github.com/exxtremestuffs/SimpleSpySource/raw/master/SimpleSpy.lua', true)))
+end)
+
 Library.ToggleKeybind = Options.MenuKeybind
 
 -- Addons:
