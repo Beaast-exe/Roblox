@@ -31,6 +31,9 @@ local defaultSettings = {
 	['AutoDefense'] = {
 		['Enabled'] = false
 	},
+	['Utils'] = {
+		['PlayerPassive'] = false
+	},
 	['Keybinds'] = {
 		['menuKeybind'] = 'LeftShift'
 	},
@@ -401,6 +404,28 @@ task.spawn(function()
 					end
 				end
 			end
+		end
+	end
+end)
+
+-- // UTILS
+local Utils = Tabs['Main']:AddRightGroupbox('Utilities')
+Utils:AddToggle('enableAutoPassive', {
+	Text = 'Auto Passive (Player)',
+	Default = settings['Utils']['PlayerPassive'],
+	Tooltip = 'Rerolls your Player Passive',
+
+	Callback = function(value)
+		settings['Utils']['PlayerPassive'] = value
+		SaveConfig()
+	end
+})
+
+task.spawn(function()
+	while task.wait() and not Library.Unloaded do
+		if settings['Utils']['PlayerPassive'] then
+			local args = { [1] = { [1] = { [1] = "\3", [2] = "Passive", [3] = "PlayerSpin" } } }
+			ReplicatedStorage.RemoteEvent:FireServer(unpack(args))
 		end
 	end
 end)
