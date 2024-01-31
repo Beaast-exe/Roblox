@@ -188,24 +188,6 @@ local getEnemies = (newcclosure(function(world)
 	return enemy
 end))
 
-local getTitanEnemies = (newcclosure(function()
-	local distance = 9e9
-	local enemy
-
-	for i, v in pairs(Workspace['_ENEMIES']:GetDescendants()) do
-		if v:IsA("Model") and v:FindFirstChild("HumanoidRootPart") and v:FindFirstChild('_STATS') and tonumber(v['_STATS']['CurrentHP'].Value) > 0 then
-			local mag = (character.HumanoidRootPart.Position - v.HumanoidRootPart.Position).magnitude
-
-			if mag < distance then
-				distance = mag
-				enemy = v
-			end
-		end
-	end
-
-	return enemy
-end))
-
 local AutoFarm = Tabs['Main']:AddLeftGroupbox('Auto Farm')
 AutoFarm:AddDropdown('autoFarmWorld', {
 	Text = 'Auto Farm World',
