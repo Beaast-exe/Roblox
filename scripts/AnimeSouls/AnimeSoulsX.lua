@@ -93,6 +93,8 @@ local worldsTable = {
 
 local createdDefense = false
 local minute = os.date("%M")
+local NoClipping = nil
+local CLip = true
 local playerMode
 
 function Initialize()
@@ -421,11 +423,47 @@ Utils:AddToggle('enableAutoPassive', {
 	end
 })
 
+Utils:AddToggle('enableNoclip', {
+	Text = 'Enable Noclip',
+	Default = settings['Utils']['Noclip'],
+	Tooltip = 'Enables Noclip',
+
+	Callback = function(value)
+		settings['Utils']['Noclip'] = value
+		SaveConfig()
+	end
+})
+
 task.spawn(function()
 	while task.wait() and not Library.Unloaded do
 		if settings['Utils']['PlayerPassive'] then
 			local args = { [1] = { [1] = { [1] = "\3", [2] = "Passive", [3] = "PlayerSpin" } } }
 			ReplicatedStorage.RemoteEvent:FireServer(unpack(args))
+		end
+	end
+end)
+
+task.spawn(function()
+	while task.wait() and not Library.Unloaded do
+		if settings['Utils']['Noclip'] then
+			Clip = false
+			task.wait(0.1)
+			local function NoclipLoop()
+				if Clip == false and character ~= nil then
+					for _, child in pairs(character:GetDescendants()) do
+						if child:IsA("BasePart") and child.CanCollide == true and child.Name ~= floatName then
+							child.CanCollide = false
+						end
+					end
+				end
+			end
+
+			NoClipping = RunService.Stepped:Connect(NoclipLoop)
+		else
+			if NoClipping then
+				NoClipping:Disconnect()
+			end
+			Clip = true
 		end
 	end
 end)
