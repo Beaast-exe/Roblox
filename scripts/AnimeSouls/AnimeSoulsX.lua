@@ -32,7 +32,8 @@ local defaultSettings = {
 		['Enabled'] = false
 	},
 	['Utils'] = {
-		['PlayerPassive'] = false
+		['PlayerPassive'] = false,
+		['Kagune'] = false
 	},
 	['Keybinds'] = {
 		['menuKeybind'] = 'LeftShift'
@@ -423,6 +424,17 @@ Utils:AddToggle('enableAutoPassive', {
 	end
 })
 
+Utils:AddToggle('enableAutoKagune', {
+	Text = 'Auto Kagune',
+	Default = settings['Utils']['Kagune'],
+	Tooltip = 'Rerolls your Kagune',
+
+	Callback = function(value)
+		settings['Utils']['Kagune'] = value
+		SaveConfig()
+	end
+})
+
 Utils:AddToggle('enableNoclip', {
 	Text = 'Enable Noclip',
 	Default = settings['Utils']['Noclip'],
@@ -438,6 +450,11 @@ task.spawn(function()
 	while task.wait() and not Library.Unloaded do
 		if settings['Utils']['PlayerPassive'] then
 			local args = { [1] = { [1] = { [1] = "\3", [2] = "Passive", [3] = "PlayerSpin" } } }
+			ReplicatedStorage.RemoteEvent:FireServer(unpack(args))
+		end
+
+		if settings['Utils']['Kagune'] then
+			local args = { [1] = { [1] = { [1] = "\3", [2] = "Kagune", [3] = "Spin" } } }
 			ReplicatedStorage.RemoteEvent:FireServer(unpack(args))
 		end
 	end
