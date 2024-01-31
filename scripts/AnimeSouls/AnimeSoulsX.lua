@@ -28,7 +28,8 @@ local defaultSettings = {
 	['Exchange'] = {
 		['Enabled'] = false,
 		['Sacrifice'] = "Elemental Token",
-		['Return'] = "Elemental Token"
+		['Return'] = "Elemental Token",
+		['OPCrate'] = false
 	},
 	['AutoDungeon'] = {
 		['Enabled'] = false
@@ -38,6 +39,8 @@ local defaultSettings = {
 	},
 	['Utils'] = {
 		['PlayerPassive'] = false,
+		['Element'] = false,
+		['Race'] = false,
 		['Kagune'] = false,
 		['Class'] = false
 	},
@@ -290,6 +293,17 @@ AutoExchange:AddToggle('enableAutoExchange', {
 	end
 })
 
+AutoExchange:AddToggle('enableOPCrate', {
+	Text = 'Enable OP Crate',
+	Default = settings['Exchange']['OPCrate'],
+	Tooltip = 'Rolls on OP Crate',
+
+	Callback = function(value)
+		settings['Exchange']['OPCrate'] = value
+		SaveConfig()
+	end
+})
+
 task.spawn(function()
 	while task.wait() and not Library.Unloaded do
 		if settings['Exchange']['Enabled'] then
@@ -297,6 +311,15 @@ task.spawn(function()
 			local returnItem = settings['Exchange']['Return']
 
 			local args = { [1] = { [1] = { [1] = "\3", [2] = "Exchange", [3] = "Make", [4] = sacrificeItem, [5] = returnItem } } }
+			ReplicatedStorage.RemoteEvent:FireServer(unpack(args))
+		end
+	end
+end)
+
+task.spawn(function()
+	while task.wait() and not Library.Unloaded do
+		if settings['Exchange']['OPCrate'] then
+			local args = { [1] = { [1] = { [1] = "\3", [2] = "OPCrate", [3] = "Spin" } } }
 			ReplicatedStorage.RemoteEvent:FireServer(unpack(args))
 		end
 	end
@@ -424,6 +447,7 @@ task.spawn(function()
 	end
 end)
 
+--[[
 local AutoDungeon = Tabs['Main']:AddLeftGroupbox('Auto Dungeon')
 AutoDungeon:AddToggle('enableAutoDungeon', {
 	Text = 'Auto Dungeon',
@@ -435,6 +459,7 @@ AutoDungeon:AddToggle('enableAutoDungeon', {
 		SaveConfig()
 	end
 })
+]]--
 
 -- // TP TO DUNGEON
 task.spawn(function()
@@ -496,6 +521,28 @@ Utils:AddToggle('enableAutoPassive', {
 	end
 })
 
+Utils:AddToggle('enableAutoElement', {
+	Text = 'Auto Element',
+	Default = settings['Utils']['Element'],
+	Tooltip = 'Rerolls your Ninja Element',
+
+	Callback = function(value)
+		settings['Utils']['Element'] = value
+		SaveConfig()
+	end
+})
+
+Utils:AddToggle('enableAutoRace', {
+	Text = 'Auto Race',
+	Default = settings['Utils']['Race'],
+	Tooltip = 'Rerolls your Dragon Race',
+
+	Callback = function(value)
+		settings['Utils']['Race'] = value
+		SaveConfig()
+	end
+})
+
 Utils:AddToggle('enableAutoKagune', {
 	Text = 'Auto Kagune',
 	Default = settings['Utils']['Kagune'],
@@ -533,6 +580,16 @@ task.spawn(function()
 	while task.wait() and not Library.Unloaded do
 		if settings['Utils']['PlayerPassive'] then
 			local args = { [1] = { [1] = { [1] = "\3", [2] = "Passive", [3] = "PlayerSpin" } } }
+			ReplicatedStorage.RemoteEvent:FireServer(unpack(args))
+		end
+
+		if settings['Utils']['Element'] then
+			local args = { [1] = { [1] = { [1] = "\3", [2] = "Element", [3] = "Spin" } } }
+			ReplicatedStorage.RemoteEvent:FireServer(unpack(args))
+		end
+
+		if settings['Utils']['Race'] then
+			local args = { [1] = { [1] = { [1] = "\3", [2] = "Race", [3] = "Spin" } } }
 			ReplicatedStorage.RemoteEvent:FireServer(unpack(args))
 		end
 
