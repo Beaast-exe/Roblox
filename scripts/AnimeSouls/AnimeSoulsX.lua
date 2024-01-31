@@ -158,7 +158,7 @@ local getClosestEnemyDungeon = (newcclosure(function(dungeon)
 end))
 
 local getClosestEnemyDefense = (newcclosure(function()
-	local distance = 1000
+	local distance = 9e9
 	local enemy
 
 	for i, v in pairs(Workspace._ENEMIES['Defense']:GetChildren()) do
