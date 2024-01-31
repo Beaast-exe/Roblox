@@ -507,6 +507,17 @@ Utils:AddToggle('enableAutoKagune', {
 	end
 })
 
+Utils:AddToggle('enableAutoClass', {
+	Text = 'Auto Class',
+	Default = settings['Utils']['Class'],
+	Tooltip = 'Rerolls your Class',
+
+	Callback = function(value)
+		settings['Utils']['Class'] = value
+		SaveConfig()
+	end
+})
+
 Utils:AddToggle('enableNoclip', {
 	Text = 'Enable Noclip',
 	Default = settings['Utils']['Noclip'],
