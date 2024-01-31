@@ -246,39 +246,19 @@ task.spawn(function()
 	while task.wait() and not Library.Unloaded do
 		if settings['AutoFarm']['Enabled'] then
 			local enemy = getEnemies(settings['AutoFarm']['World'])
-				if enemy == nil then return end
-				-- 	repeat
-				-- 		enemy = getEnemies(settings['AutoFarm']['World'])
-				-- 	until enemy ~= nil
-				-- 	or getEnemies(settings['AutoFarm']['World']) ~= nil
-				-- end
-			-- 	local args = {
-			-- 		[1] = {
-			-- 			[1] = {
-			-- 				[1] = "\3",
-			-- 				[2] = "Teleport",
-			-- 				[3] = "To",
-			-- 				[4] = tonumber(settings['AutoFarm']['World'])
-			-- 			}
-    		-- 		}
-			-- 	}
+			if enemy == nil then return end
+			local tweeninfo = TweenInfo.new(0.5, Enum.EasingStyle.Linear)
+			local cf = enemy.HumanoidRootPart.CFrame
+			local a = TweenService:Create(character.HumanoidRootPart, tweeninfo, {CFrame = cf})
+			a:Play()
 
-			-- 	ReplicatedStorage.RemoteEvent:FireServer(unpack(args))
-			-- 	task.wait(5)
-			-- else
-				local tweeninfo = TweenInfo.new(0.5, Enum.EasingStyle.Linear)
-				local cf = enemy.HumanoidRootPart.CFrame
-				local a = TweenService:Create(character.HumanoidRootPart, tweeninfo, {CFrame = cf})
-				a:Play()
+			local args = { [1] = { [1] = { [1] = "\3", [2] = "Click", [3] = "Execute", [4] = enemy } } }
+			local titan1Args = { [1] = { [1] = { [1] = "\3", [2] = "Titan", [3] = "Attack", [4] = "1", [5] = enemy } } }
+			local titan2Args = { [1] = { [1] = { [1] = "\3", [2] = "Titan", [3] = "Attack", [4] = "2", [5] = enemy } } }
 
-				local args = { [1] = { [1] = { [1] = "\3", [2] = "Click", [3] = "Execute", [4] = enemy } } }
-				local titan1Args = { [1] = { [1] = { [1] = "\3", [2] = "Titan", [3] = "Attack", [4] = "1", [5] = enemy } } }
-				local titan2Args = { [1] = { [1] = { [1] = "\3", [2] = "Titan", [3] = "Attack", [4] = "2", [5] = enemy } } }
-
-				ReplicatedStorage.RemoteEvent:FireServer(unpack(args))
-				ReplicatedStorage.RemoteEvent:FireServer(unpack(titan1Args))
-				ReplicatedStorage.RemoteEvent:FireServer(unpack(titan2Args))
-			-- end
+			ReplicatedStorage.RemoteEvent:FireServer(unpack(args))
+			ReplicatedStorage.RemoteEvent:FireServer(unpack(titan1Args))
+			ReplicatedStorage.RemoteEvent:FireServer(unpack(titan2Args))
 		end
 	end
 end)
@@ -331,7 +311,6 @@ AutoDefense:AddToggle('enableAutoDefense', {
 
 function AbrirEntrarDefense()
 	if not createdDefense then
-		--if playerMode ~= "Defense" and playerMode ~= "Dungeon" then
 		local argsOpen = {
 			[1] = { [1] = { [1] = "\3", [2] = "Defense", [3] = "Open", [4] = true } } }
 	
@@ -345,14 +324,12 @@ function AbrirEntrarDefense()
 		createdDefense = true
 		task.wait(60)
 		createdDefense = false
-		--end
 	end
 end
 
 task.spawn(function()
 	while task.wait() and not Library.Unloaded do
 		if settings['AutoDefense']['Enabled'] then
-			--if playerMode == "Defense" or playerMode == "Dungeon" then return end
 			AbrirEntrarDefense()
 		end
 	end
@@ -361,17 +338,14 @@ end)
 task.spawn(function()
 	while task.wait() and not Library.Unloaded do
 		if settings['AutoDefense']['Enabled'] then
-			--if playerMode == "Dungeon" then return end
 			local enemy = getClosestEnemyDefense()
 
 			if #Workspace['_ENEMIES']['Defense']:GetChildren() <= 0 then
-				--if playerMode ~= "Defense" then
-					local tweeninfo = TweenInfo.new(0.5, Enum.EasingStyle.Linear)
-					local cf = CFrame.new(manaCrystal)
-					local a = TweenService:Create(character.HumanoidRootPart, tweeninfo, {CFrame = cf})
-					a:Play()
-					character.HumanoidRootPart.CFrame = CFrame.new(manaCrystal)
-				--end
+				local tweeninfo = TweenInfo.new(0.5, Enum.EasingStyle.Linear)
+				local cf = CFrame.new(manaCrystal)
+				local a = TweenService:Create(character.HumanoidRootPart, tweeninfo, {CFrame = cf})
+				a:Play()
+				character.HumanoidRootPart.CFrame = CFrame.new(manaCrystal)
 			end
 
 			if enemy and enemy:FindFirstChild("HumanoidRootPart") then
@@ -382,19 +356,11 @@ task.spawn(function()
 					local a = TweenService:Create(character.HumanoidRootPart, tweeninfo, {CFrame = cf})
 					a:Play()
 
-					-- character.HumanoidRootPart.CFrame = enemy.HumanoidRootPart.CFrame
-
 					local args = { [1] = { [1] = { [1] = "\3", [2] = "Click", [3] = "Execute", [4] = enemy } } }
-					--local titan1Args = { [1] = { [1] = { [1] = "\3", [2] = "Titan", [3] = "Attack", [4] = "1", [5] = enemy } } }
-					--local titan2Args = { [1] = { [1] = { [1] = "\3", [2] = "Titan", [3] = "Attack", [4] = "2", [5] = enemy } } }
-
 					ReplicatedStorage.RemoteEvent:FireServer(unpack(args))
-					--ReplicatedStorage.RemoteEvent:FireServer(unpack(titan1Args))
-					--ReplicatedStorage.RemoteEvent:FireServer(unpack(titan2Args))
 				end
 			end
 		end
-		--task.wait()
 	end
 end)
 
@@ -448,15 +414,8 @@ task.spawn(function()
 						local a = TweenService:Create(character.HumanoidRootPart, tweeninfo, {CFrame = cf})
 						a:Play()
 
-						-- character.HumanoidRootPart.CFrame = enemy.CFrame
-
 						local args = { [1] = { [1] = { [1] = "\3", [2] = "Click", [3] = "Execute", [4] = enemy } } }
-						local titan1Args = { [1] = { [1] = { [1] = "\3", [2] = "Titan", [3] = "Attack", [4] = "1", [5] = enemy } } }
-						local titan2Args = { [1] = { [1] = { [1] = "\3", [2] = "Titan", [3] = "Attack", [4] = "2", [5] = enemy } } }
-
 						ReplicatedStorage.RemoteEvent:FireServer(unpack(args))
-						ReplicatedStorage.RemoteEvent:FireServer(unpack(titan1Args))
-						ReplicatedStorage.RemoteEvent:FireServer(unpack(titan2Args))
 					end
 				end
 			end
