@@ -22,6 +22,7 @@ local saveFile = saveFolderName .. '/' .. gameFolderName .. '/' .. saveFileName
 local defaultSettings = {
 	['AutoFarm'] = {
 		['Enabled'] = false,
+		['Titans'] = false,
 		['World'] = "Cursed Zone"
 	},
 	['AutoDungeon'] = {
@@ -70,7 +71,8 @@ local worldsNames = {
 	"Ghoul Town",
 	"Marine Station",
 	"Leveling City",
-	"Titan District"
+	"Titan District",
+	"XYZ Province"
 }
 local worldsTable = {
 	["Cursed Zone"] = "1",
@@ -82,7 +84,8 @@ local worldsTable = {
 	["Ghoul Town"] = "7",
 	["Marine Station"] = "8",
 	["Leveling City"] = "9",
-	["Titan District"] = "10"
+	["Titan District"] = "10",
+	["XYZ Province"] = "11"
 }
 
 local createdDefense = false
@@ -109,12 +112,34 @@ task.spawn(function()
 end)
 
 -- // FUNCTIONS
+function findNearestEnemy()
+	local Closest = nil
+	local ClosestDistance = math.huge
+
+	local enemyModels = Workspace['_ENEMIES']:GetDescendants()
+
+	for _, targetEnemy in ipairs(enemyModels) do
+		if targetEnemy:IsA("Model") and targetEnemy:FindFirstChild('HumanoidRootPart') and targetEnemy:FindFirstChild('_STATS')  and tonumber(targetEnemy['_STATS']['CurrentHP'].Value) > 0 then
+			local Distance = (character.HumanoidRootPart.Position - targetEnemy.HumanoidRootPart.Position).magnitude
+
+			if Distance <= 150 and Distance < ClosestDistance then
+				Closest = targetEnemy
+				ClosestDistance = Distance
+			end
+		end
+	end
+
+	if Closest == nil then ClosestDistance = math.huge end
+
+	return Closest, ClosestDistance
+end
+
 local getClosestEnemyDungeon = (newcclosure(function(dungeon)
 	local distance = 1000
 	local enemy
 
 	for i, v in pairs(Workspace._ENEMIES['Dungeon'][dungeon]:GetDescendants()) do
-		if v:IsA("Model") and v:FindFirstChild("HumanoidRootPart") and tonumber(v['_STATS']['CurrentHP'].Value) > 0 then
+		if v:IsA("Model") and v:FindFirstChild("HumanoidRootPart") and v:FindFirstChild('_STATS')  and tonumber(v['_STATS']['CurrentHP'].Value) > 0 then
 			local mag = (character.HumanoidRootPart.Position - v.HumanoidRootPart.Position).magnitude
 
 			if mag < distance then
@@ -132,7 +157,7 @@ local getClosestEnemyDefense = (newcclosure(function()
 	local enemy
 
 	for i, v in pairs(Workspace._ENEMIES['Defense']:GetChildren()) do
-		if v:IsA("Model") and v:FindFirstChild("HumanoidRootPart") and tonumber(v['_STATS']['CurrentHP'].Value) > 0 then
+		if v:IsA("Model") and v:FindFirstChild("HumanoidRootPart") and v:FindFirstChild('_STATS') and tonumber(v['_STATS']['CurrentHP'].Value) > 0 then
 			local mag = (manaCrystal - v.HumanoidRootPart.Position).magnitude
 
 			if mag < distance then
@@ -150,7 +175,25 @@ local getEnemies = (newcclosure(function(world)
 	local enemy
 
 	for i, v in pairs(Workspace['_ENEMIES'][world]:GetChildren()) do
-		if v:IsA("Model") and v:FindFirstChild("HumanoidRootPart") and tonumber(v['_STATS']['CurrentHP'].Value) > 0 then
+		if v:IsA("Model") and v:FindFirstChild("HumanoidRootPart") and v:FindFirstChild('_STATS') and tonumber(v['_STATS']['CurrentHP'].Value) > 0 then
+			local mag = (character.HumanoidRootPart.Position - v.HumanoidRootPart.Position).magnitude
+
+			if mag < distance then
+				distance = mag
+				enemy = v
+			end
+		end
+	end
+
+	return enemy
+end))
+
+local getTitanEnemies = (newcclosure(function()
+	local distance = 9e9
+	local enemy
+
+	for i, v in pairs(Workspace['_ENEMIES']:GetDescendants()) do
+		if v:IsA("Model") and v:FindFirstChild("HumanoidRootPart") and v:FindFirstChild('_STATS') and tonumber(v['_STATS']['CurrentHP'].Value) > 0 then
 			local mag = (character.HumanoidRootPart.Position - v.HumanoidRootPart.Position).magnitude
 
 			if mag < distance then
@@ -188,6 +231,17 @@ AutoFarm:AddToggle('enableAutoFarm', {
 	end
 })
 
+AutoFarm:AddToggle('enableBetterTitans', {
+	Text = 'Enable Better Titans',
+	Default = settings['AutoFarm']['Titans'],
+	Tooltip = 'Titans always attack closest enemy',
+
+	Callback = function(value)
+		settings['AutoFarm']['Titans'] = value
+		SaveConfig()
+	end
+})
+
 task.spawn(function()
 	while task.wait() and not Library.Unloaded do
 		if settings['AutoFarm']['Enabled'] then
@@ -217,19 +271,48 @@ task.spawn(function()
 				local a = TweenService:Create(character.HumanoidRootPart, tweeninfo, {CFrame = cf})
 				a:Play()
 
-				local args = {
-					[1] = {
-						[1] = {
-							[1] = "\3",
-							[2] = "Click",
-							[3] = "Execute",
-							[4] = enemy
-						}
-					}
-				}
+				local args = { [1] = { [1] = { [1] = "\3", [2] = "Click", [3] = "Execute", [4] = enemy } } }
+				local titan1Args = { [1] = { [1] = { [1] = "\3", [2] = "Titan", [3] = "Attack", [4] = "1", [5] = enemy } } }
+				local titan2Args = { [1] = { [1] = { [1] = "\3", [2] = "Titan", [3] = "Attack", [4] = "2", [5] = enemy } } }
 
 				ReplicatedStorage.RemoteEvent:FireServer(unpack(args))
+				ReplicatedStorage.RemoteEvent:FireServer(unpack(titan1Args))
+				ReplicatedStorage.RemoteEvent:FireServer(unpack(titan2Args))
 			-- end
+		end
+	end
+end)
+
+task.spawn(function()
+	while task.wait() and not Library.Unloaded do
+		if settings['AutoFarm']['Titans'] then
+			local Closest, ClosestDistance = findNearestEnemy()
+
+			if Closest then
+				if lastClosest == nil then lastClosest = Closest end
+
+				if lastClosest == Closest then
+					local titan1Args = { [1] = { [1] = { [1] = "\3", [2] = "Titan", [3] = "Attack", [4] = "1", [5] = Closest } } }
+					local titan2Args = { [1] = { [1] = { [1] = "\3", [2] = "Titan", [3] = "Attack", [4] = "2", [5] = Closest } } }
+					ReplicatedStorage.RemoteEvent:FireServer(unpack(titan1Args))
+					task.wait(0.005)
+					ReplicatedStorage.RemoteEvent:FireServer(unpack(titan2Args))
+				else
+					lastClosest = Closest
+					local titan1Args = { [1] = { [1] = { [1] = "\3", [2] = "Titan", [3] = "Attack", [4] = "1", [5] = Closest } } }
+					local titan2Args = { [1] = { [1] = { [1] = "\3", [2] = "Titan", [3] = "Attack", [4] = "2", [5] = Closest } } }
+					ReplicatedStorage.RemoteEvent:FireServer(unpack(titan1Args))
+					task.wait(0.005)
+					ReplicatedStorage.RemoteEvent:FireServer(unpack(titan2Args))
+				end
+			else
+				local titan1Args = { [1] = { [1] = { [1] = "\3", [2] = "Titan", [3] = "Attack", [4] = "1" } } }
+				local titan2Args = { [1] = { [1] = { [1] = "\3", [2] = "Titan", [3] = "Attack", [4] = "2" } } }
+				ReplicatedStorage.RemoteEvent:FireServer(unpack(titan1Args))
+				task.wait(0.005)
+				ReplicatedStorage.RemoteEvent:FireServer(unpack(titan2Args))
+			end
+
 		end
 	end
 end)
@@ -302,8 +385,12 @@ task.spawn(function()
 					-- character.HumanoidRootPart.CFrame = enemy.HumanoidRootPart.CFrame
 
 					local args = { [1] = { [1] = { [1] = "\3", [2] = "Click", [3] = "Execute", [4] = enemy } } }
+					--local titan1Args = { [1] = { [1] = { [1] = "\3", [2] = "Titan", [3] = "Attack", [4] = "1", [5] = enemy } } }
+					--local titan2Args = { [1] = { [1] = { [1] = "\3", [2] = "Titan", [3] = "Attack", [4] = "2", [5] = enemy } } }
 
 					ReplicatedStorage.RemoteEvent:FireServer(unpack(args))
+					--ReplicatedStorage.RemoteEvent:FireServer(unpack(titan1Args))
+					--ReplicatedStorage.RemoteEvent:FireServer(unpack(titan2Args))
 				end
 			end
 		end
@@ -363,18 +450,13 @@ task.spawn(function()
 
 						-- character.HumanoidRootPart.CFrame = enemy.CFrame
 
-						local args = {
-							[1] = {
-								[1] = {
-									[1] = "\3",
-									[2] = "Click",
-									[3] = "Execute",
-									[4] = enemy
-								}
-							}
-						}
+						local args = { [1] = { [1] = { [1] = "\3", [2] = "Click", [3] = "Execute", [4] = enemy } } }
+						local titan1Args = { [1] = { [1] = { [1] = "\3", [2] = "Titan", [3] = "Attack", [4] = "1", [5] = enemy } } }
+						local titan2Args = { [1] = { [1] = { [1] = "\3", [2] = "Titan", [3] = "Attack", [4] = "2", [5] = enemy } } }
 
 						ReplicatedStorage.RemoteEvent:FireServer(unpack(args))
+						ReplicatedStorage.RemoteEvent:FireServer(unpack(titan1Args))
+						ReplicatedStorage.RemoteEvent:FireServer(unpack(titan2Args))
 					end
 				end
 			end
