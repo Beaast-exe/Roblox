@@ -25,6 +25,11 @@ local defaultSettings = {
 		['Titans'] = false,
 		['World'] = "Cursed Zone"
 	},
+	['Exchange'] = {
+		['Enabled'] = false,
+		['Sacrifice'] = "Elemental Token",
+		['Return'] = "Elemental Token"
+	},
 	['AutoDungeon'] = {
 		['Enabled'] = false
 	},
@@ -33,7 +38,8 @@ local defaultSettings = {
 	},
 	['Utils'] = {
 		['PlayerPassive'] = false,
-		['Kagune'] = false
+		['Kagune'] = false,
+		['Class'] = false
 	},
 	['Keybinds'] = {
 		['menuKeybind'] = 'LeftShift'
@@ -90,6 +96,22 @@ local worldsTable = {
 	["Leveling City"] = "9",
 	["Titan District"] = "10",
 	["XYZ Province"] = "11"
+}
+
+local Items = {
+	["Elemental Token"] = "ElementalTokens",
+	["Gold Bar"] = "GoldBars",
+	["Amulet Shards"] = "AmuletShards",
+	["Avatar Spin"] = "AvatarSpins",
+	["Class Spin"] = "ClassSpins",
+	["Shiny Shard"] = "ShinyShards",
+	["Spinal Fluid"] = "SpinalFluids",
+	["Spiritual Token"] = "SpiritualTokens",
+	["Passive Token"] = "PassiveTokens",
+	["Blood"] = "Bloods",
+	["Enchantment Token"] = "EnchantmentTokens",
+	["Star Balls"] = "StarBalls",
+	['OP Key'] = 'OPKeys'
 }
 
 local createdDefense = false
@@ -203,8 +225,8 @@ AutoFarm:AddDropdown('autoFarmWorld', {
 	Values = worldsNames,
 
 	Callback = function(value)
-		settings['AutoFarm']['World'] = worldsTable[value]
-		print(settings['AutoFarm']['World'])
+		settings['AutoFarm']['World'] = value
+		SaveConfig()
 	end
 })
 
@@ -230,10 +252,60 @@ AutoFarm:AddToggle('enableBetterTitans', {
 	end
 })
 
+local AutoExchange = Tabs['Main']:AddLeftGroupbox('Auto Exchange')
+AutoExchange:AddDropdown('autoExchangeSacrifice', {
+	Text = 'Exchange Item (Sacrifice)',
+	Tooltip = 'The item you will lose',
+	Default = settings['Exchange']['Sacrifice'],
+	Multi = false,
+	Values = Items,
+
+	Callback = function(value)
+		settings['Exchange']['Sacrifice'] = value
+		SaveConfig()
+	end
+})
+
+AutoExchange:AddDropdown('autoExchangeReturn', {
+	Text = 'Exchange Item (Receive)',
+	Tooltip = 'The item you will lose',
+	Default = settings['Exchange']['Return'],
+	Multi = false,
+	Values = Items,
+
+	Callback = function(value)
+		settings['Exchange']['Return'] = value
+		SaveConfig()
+	end
+})
+
+AutoExchange:AddToggle('enableAutoExchange', {
+	Text = 'Enable Auto Exchange',
+	Default = settings['Exchange']['Enabled'],
+	Tooltip = 'Activate Auto Exchange',
+
+	Callback = function(value)
+		settings['Exchange']['Enabled'] = value
+		SaveConfig()
+	end
+})
+
+task.spawn(function()
+	while task.wait() and not Library.Unloaded do
+		if settings['Exchange']['Enabled'] then
+			local sacrificeItem = settings['Exchange']['Sacrifice']
+			local returnItem = settings['Exchange']['Return']
+
+			local args = { [1] = { [1] = { [1] = "\3", [2] = "Exchange", [3] = "Make", [4] = sacrificeItem, [5] = returnItem } } }
+			ReplicatedStorage.RemoteEvent:FireServer(unpack(args))
+		end
+	end
+end)
+
 task.spawn(function()
 	while task.wait() and not Library.Unloaded do
 		if settings['AutoFarm']['Enabled'] then
-			local enemy = getEnemies(settings['AutoFarm']['World'])
+			local enemy = getEnemies(worldsTable[settings['AutoFarm']['World']])
 			if enemy == nil then return end
 			local tweeninfo = TweenInfo.new(0.5, Enum.EasingStyle.Linear)
 			local cf = enemy.HumanoidRootPart.CFrame
@@ -455,6 +527,11 @@ task.spawn(function()
 
 		if settings['Utils']['Kagune'] then
 			local args = { [1] = { [1] = { [1] = "\3", [2] = "Kagune", [3] = "Spin" } } }
+			ReplicatedStorage.RemoteEvent:FireServer(unpack(args))
+		end
+
+		if settings['Utils']['Class'] then
+			local args = { [1] = { [1] = { [1] = "\3", [2] = "Class", [3] = "Spin" } } }
 			ReplicatedStorage.RemoteEvent:FireServer(unpack(args))
 		end
 	end
