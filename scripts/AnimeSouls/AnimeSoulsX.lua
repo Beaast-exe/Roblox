@@ -660,6 +660,11 @@ OtherScripts:AddButton('Simple Spy', function()
 	task.spawn(loadstring(game:HttpGet('https://github.com/exxtremestuffs/SimpleSpySource/raw/master/SimpleSpy.lua', true)))
 end)
 
+OtherScripts:AddButton('Dark Dex', function()
+	getgenv().Key = "Bash"
+	task.spawn(loadstring(game:HttpGet('https://raw.githubusercontent.com/Beaast-exe/Roblox/master/scripts/utilities/MC_IY Dex.lua', true)))
+end)
+
 Library.ToggleKeybind = Options.MenuKeybind
 
 -- Addons:
