@@ -153,7 +153,7 @@ function findNearestEnemy()
 		if targetEnemy:IsA("Model") and targetEnemy:FindFirstChild('HumanoidRootPart') and targetEnemy:FindFirstChild('_STATS')  and tonumber(targetEnemy['_STATS']['CurrentHP'].Value) > 0 then
 			local Distance = (character.HumanoidRootPart.Position - targetEnemy.HumanoidRootPart.Position).magnitude
 
-			if Distance <= 150 and Distance < ClosestDistance then
+			if Distance <= 15000 and Distance < ClosestDistance then
 				Closest = targetEnemy
 				ClosestDistance = Distance
 			end
@@ -627,6 +627,39 @@ task.spawn(function()
 			end
 			Clip = true
 		end
+	end
+end)
+
+-- // TIMERS
+local Timers = Tabs['Main']:AddLeftGroupbox('Timers')
+local CenterGUI = PlayerGui['_CENTER']
+local ExchangeTimer = Timers:AddLabel("EXCHANGE >> ", true)
+local CrewTimer = Timers:AddLabel("CREW >> ", true)
+--local ChestTimer = Timers:AddLabel("GROUP CHEST >> ", true)
+
+task.spawn(function()
+	while task.wait() and not Library.Unloaded do
+		local exchangeTimerResetText = CenterGUI.Exchange.ResetTime.Label.Text
+		local crewTimerReset = CenterGUI.Crew.State
+		local crewTimerText = "LOADING"
+
+		if CenterGUI.Exchange.ResetTime.Label.TextColor3 == Color3.fromRGB(255, 0, 0) then
+			exchangeTimerResetText = exchangeTimerResetText:gsub("%b<>", "")
+			exchangeTimerResetText = exchangeTimerResetText:match(': (.+)')
+			exchangeTimerResetText = "Available in: " .. exchangeTimerResetText
+		end
+
+		if crewTimerReset.Ready.Visible then
+			crewTimerText = "READY"
+		else
+			crewTimerText = crewTimerReset.Sailing.Text
+			crewTimerText = crewTimerText:gsub("%b<>", "")
+			crewTimerText = crewTimerText:match('at (.+)')
+			crewTimerText = "Available in: " .. crewTimerText
+		end
+		
+		ExchangeTimer:SetText("EXCHANGE >> " .. exchangeTimerResetText)
+		CrewTimer:SetText("CREW >> " .. crewTimerText)
 	end
 end)
 
