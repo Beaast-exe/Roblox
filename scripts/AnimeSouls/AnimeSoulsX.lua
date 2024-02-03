@@ -114,8 +114,10 @@ local Items = {
 	["Blood"] = "Bloods",
 	["Enchantment Token"] = "EnchantmentTokens",
 	["Star Balls"] = "StarBalls",
-	['OP Key'] = 'OPKeys'
+	["OP Key"] = "OPKeys"
 }
+
+local ItemsNames = {"OP Key", "Elemental Token", "Gold Bar", "Amulet Shards", "Avatar Spin", "Class Spin", "Shiny Shard", "Spinal Fluid", "Spiritual Token", "Passive Token", "Blood", "Enchantment Token", "Star Balls", }
 
 local createdDefense = false
 local minute = os.date("%M")
@@ -261,7 +263,7 @@ AutoExchange:AddDropdown('autoExchangeSacrifice', {
 	Tooltip = 'The item you will lose',
 	Default = settings['Exchange']['Sacrifice'],
 	Multi = false,
-	Values = Items,
+	Values = ItemsNames,
 
 	Callback = function(value)
 		settings['Exchange']['Sacrifice'] = value
@@ -274,7 +276,7 @@ AutoExchange:AddDropdown('autoExchangeReturn', {
 	Tooltip = 'The item you will lose',
 	Default = settings['Exchange']['Return'],
 	Multi = false,
-	Values = Items,
+	Values = ItemsNames,
 
 	Callback = function(value)
 		settings['Exchange']['Return'] = value
@@ -307,8 +309,8 @@ AutoExchange:AddToggle('enableOPCrate', {
 task.spawn(function()
 	while task.wait() and not Library.Unloaded do
 		if settings['Exchange']['Enabled'] then
-			local sacrificeItem = settings['Exchange']['Sacrifice']
-			local returnItem = settings['Exchange']['Return']
+			local sacrificeItem = Items[settings['Exchange']['Sacrifice']]
+			local returnItem = Items[settings['Exchange']['Return']]
 
 			local args = { [1] = { [1] = { [1] = "\3", [2] = "Exchange", [3] = "Make", [4] = sacrificeItem, [5] = returnItem } } }
 			ReplicatedStorage.RemoteEvent:FireServer(unpack(args))
