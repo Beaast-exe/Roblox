@@ -27,8 +27,8 @@ local defaultSettings = {
 	},
 	['Exchange'] = {
 		['Enabled'] = false,
-		['Sacrifice'] = "Elemental Token",
-		['Return'] = "Elemental Token",
+		['Sacrifice'] = "OP Key",
+		['Return'] = "OP Key",
 		['OPCrate'] = false
 	},
 	['AutoDungeon'] = {
