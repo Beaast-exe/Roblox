@@ -800,7 +800,7 @@ task.spawn(function()
 		task.wait(5)
 		
 		if settings['Potions']['Damage'] then
-			if not PlayerGui.Utils.Content.PlayerBoosts.Drop.Visible and tonumber(player.Potions:GetAttribute("Damage")) == 0 then
+			if not PlayerGui.Utils.Content.PlayerBoosts.Damage.Visible and tonumber(player.Potions:GetAttribute("Damage")) == 0 then
 				local args = { [1] = { [1] = { [1] = "\3", [2] = "Potion", [3] = "Use", [4] = "Damage", [5] = 1 } } }
 				ReplicatedStorage.RemoteEvent:FireServer(unpack(args))
 			end
@@ -814,21 +814,21 @@ task.spawn(function()
 		end
 		
 		if settings['Potions']['Energy'] then
-			if not PlayerGui.Utils.Content.PlayerBoosts.Drop.Visible and tonumber(player.Potions:GetAttribute("Energy")) == 0 then
+			if not PlayerGui.Utils.Content.PlayerBoosts.Energy.Visible and tonumber(player.Potions:GetAttribute("Energy")) == 0 then
 				local args = { [1] = { [1] = { [1] = "\3", [2] = "Potion", [3] = "Use", [4] = "Energy", [5] = 1 } } }
 				ReplicatedStorage.RemoteEvent:FireServer(unpack(args))
 			end
 		end
 		
 		if settings['Potions']['Luck'] then
-			if not PlayerGui.Utils.Content.PlayerBoosts.Drop.Visible and tonumber(player.Potions:GetAttribute("Luck")) == 0 then
+			if not PlayerGui.Utils.Content.PlayerBoosts.Luck.Visible and tonumber(player.Potions:GetAttribute("Luck")) == 0 then
 				local args = { [1] = { [1] = { [1] = "\3", [2] = "Potion", [3] = "Use", [4] = "Luck", [5] = 1 } } }
 				ReplicatedStorage.RemoteEvent:FireServer(unpack(args))
 			end
 		end
 		
 		if settings['Potions']['Souls'] then
-			if not PlayerGui.Utils.Content.PlayerBoosts.Drop.Visible and tonumber(player.Potions:GetAttribute("Soul")) == 0 then
+			if not PlayerGui.Utils.Content.PlayerBoosts.Soul.Visible and tonumber(player.Potions:GetAttribute("Soul")) == 0 then
 				local args = { [1] = { [1] = { [1] = "\3", [2] = "Potion", [3] = "Use", [4] = "Soul", [5] = 1 } } }
 				ReplicatedStorage.RemoteEvent:FireServer(unpack(args))
 			end
