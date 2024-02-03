@@ -42,7 +42,12 @@ local defaultSettings = {
 		['Element'] = false,
 		['Race'] = false,
 		['Kagune'] = false,
-		['Class'] = false
+		['Class'] = false,
+		['DropPotion'] = false,
+		['DailyRewards'] = false,
+		['WheelSpin'] = false,
+		['AutoMount'] = false,
+		['AutoCrew'] = false
 	},
 	['Keybinds'] = {
 		['menuKeybind'] = 'LeftShift'
@@ -312,8 +317,15 @@ task.spawn(function()
 			local sacrificeItem = Items[settings['Exchange']['Sacrifice']]
 			local returnItem = Items[settings['Exchange']['Return']]
 
-			local args = { [1] = { [1] = { [1] = "\3", [2] = "Exchange", [3] = "Make", [4] = sacrificeItem, [5] = returnItem } } }
-			ReplicatedStorage.RemoteEvent:FireServer(unpack(args))
+			if tonumber(player.Exchange:GetAttribute("Amount")) < 1000 then
+				local args = { [1] = { [1] = { [1] = "\3", [2] = "Exchange", [3] = "Make", [4] = sacrificeItem, [5] = returnItem } } }
+				ReplicatedStorage.RemoteEvent:FireServer(unpack(args))
+			else
+				if tonumber(player.Exchange:GetAttribute("TimeToReset")) == 0 then
+					local args = { [1] = { [1] = { [1] = "\3", [2] = "Exchange", [3] = "Reset" } } }
+					ReplicatedStorage.RemoteEvent:FireServer(unpack(args))
+				end
+			end
 		end
 	end
 end)
@@ -567,6 +579,61 @@ Utils:AddToggle('enableAutoClass', {
 	end
 })
 
+Utils:AddToggle('enableAutoDropPotion', {
+	Text = 'Auto Drop Potion',
+	Default = settings['Utils']['DropPotion'],
+	Tooltip = 'Automatically uses Drop Boost Potion',
+
+	Callback = function(value)
+		settings['Utils']['DropPotion'] = value
+		SaveConfig()
+	end
+})
+
+Utils:AddToggle('enableClaimDailyRewards', {
+	Text = 'Claim Daily Rewards',
+	Default = settings['Utils']['DailyRewards'],
+	Tooltip = 'Automatically claims your daily rewards',
+
+	Callback = function(value)
+		settings['Utils']['DailyRewards'] = value
+		SaveConfig()
+	end
+})
+
+Utils:AddToggle('enableAutoSpinWheel', {
+	Text = 'Auto Spin Wheel',
+	Default = settings['Utils']['WheelSpin'],
+	Tooltip = 'Automatically spins your Daily Wheel',
+
+	Callback = function(value)
+		settings['Utils']['WheelSpin'] = value
+		SaveConfig()
+	end
+})
+
+Utils:AddToggle('enableAutoMount', {
+	Text = 'Auto Mount',
+	Default = settings['Utils']['AutoMount'],
+	Tooltip = 'Automatically uses your Mount',
+
+	Callback = function(value)
+		settings['Utils']['AutoMount'] = value
+		SaveConfig()
+	end
+})
+
+Utils:AddToggle('enableAutoCrew', {
+	Text = 'Auto Crew',
+	Default = settings['Utils']['AutoCrew'],
+	Tooltip = 'Automatically claims and resends your Crew',
+
+	Callback = function(value)
+		settings['Utils']['AutoCrew'] = value
+		SaveConfig()
+	end
+})
+
 Utils:AddToggle('enableNoclip', {
 	Text = 'Enable Noclip',
 	Default = settings['Utils']['Noclip'],
@@ -603,6 +670,57 @@ task.spawn(function()
 		if settings['Utils']['Class'] then
 			local args = { [1] = { [1] = { [1] = "\3", [2] = "Class", [3] = "Spin" } } }
 			ReplicatedStorage.RemoteEvent:FireServer(unpack(args))
+		end
+
+		if settings['Utils']['DropPotion'] then
+			if not PlayerGui.Utils.Content.PlayerBoosts.Drop.Visible then
+				local args = { [1] = { [1] = { [1] = "\3", [2] = "Potion", [3] = "Use", [4] = "Drop", [5] = 1 } } }
+				ReplicatedStorage.RemoteEvent:FireServer(unpack(args))
+			end
+		end
+
+		if settings['Utils']['DailyRewards'] then
+			local DailyRewards = PlayerGui['_CENTER'].DailyRewards
+			local Buttons = DailyRewards.Time.Content.Scroll
+
+			for i, v in pairs(Buttons:GetChildren()) do
+				if v.Name ~= "UIGridLayout" and v.Name ~= "UIPadding" then
+					if v['Button'].BackgroundColor3 ~= Color3.fromRGB(0, 255, 0) and v['Button'].BackgroundColor3 ~= Color3.fromRGB(255, 0, 0) then
+						local args = { [1] = { [1] = { [1] = "\3", [2] = "DailyRewards", [3] = "Claim", [4] = v.Name } } }
+						ReplicatedStorage.RemoteEvent:FireServer(unpack(args))
+					end
+				end
+			end
+
+			if DailyRewards.Time.Reset.Visible and Buttons['8'].Button.BackgroundColor3 == Color3.fromRGB(0, 255, 0) then
+				local args = { [1] = { [1] = { [1] = "\3", [2] = "DailyRewards",  [3] = "Reset" } } }
+				ReplicatedStorage.RemoteEvent:FireServer(unpack(args))
+			end
+		end
+
+		if settings['Utils']['WheelSpin'] then
+			if tonumber(PlayerGui._CENTER.DailyRewards.Wheel.Info.Amount.Text) > 0 then
+				local args = { [1] = { [1] = { [1] = "\3", [2] = "Wheel", [3] = "Spin" } } }
+				ReplicatedStorage.RemoteEvent:FireServer(unpack(args))
+			end
+		end
+
+		if settings['Utils']['AutoMount'] then
+			if not player:GetAttribute("OnMount") then
+				local args = { [1] = { [1] = { [1] = "\3", [2] = "Mount", [3] = "Add" } } }
+				ReplicatedStorage.RemoteEvent:FireServer(unpack(args))
+			end
+		end
+
+		if settings['Utils']['AutoCrew'] then
+			if tonumber(player.Crew:GetAttribute("TimeToBack")) == 0 then
+				local claimRewards = { [1] = { [1] = { [1] = "\3", [2] = "Crew", [3] = "ClaimRewards" } } }
+				local sendCrew = { [1] = { [1] = { [1] = "\3", [2] = "Crew", [3] = "Send" } } }
+
+				ReplicatedStorage.RemoteEvent:FireServer(unpack(claimRewards))
+				task.wait(0.2)
+				ReplicatedStorage.RemoteEvent:FireServer(unpack(sendCrew))
+			end
 		end
 	end
 end)
