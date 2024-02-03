@@ -46,7 +46,9 @@ local defaultSettings = {
 		['DailyRewards'] = false,
 		['WheelSpin'] = false,
 		['AutoMount'] = false,
-		['AutoCrew'] = false
+		['AutoCrew'] = false,
+		['Ascend'] = false,
+		['Aura'] = false
 	},
 	['Potions'] = {
 		["Damage"] = false,
@@ -629,6 +631,28 @@ Utils:AddToggle('enableAutoCrew', {
 	end
 })
 
+Utils:AddToggle('enableAutoAscend', {
+	Text = 'Auto Ascend',
+	Default = settings['Utils']['Ascend'],
+	Tooltip = 'Automatically upgrades your Ascension',
+
+	Callback = function(value)
+		settings['Utils']['Ascend'] = value
+		SaveConfig()
+	end
+})
+
+Utils:AddToggle('enableAutoAura', {
+	Text = 'Auto Aura',
+	Default = settings['Utils']['Aura'],
+	Tooltip = 'Automatically upgrades your Aura',
+
+	Callback = function(value)
+		settings['Utils']['Aura'] = value
+		SaveConfig()
+	end
+})
+
 Utils:AddToggle('enableNoclip', {
 	Text = 'Enable Noclip',
 	Default = settings['Utils']['Noclip'],
@@ -709,6 +733,16 @@ task.spawn(function()
 				task.wait(0.2)
 				ReplicatedStorage.RemoteEvent:FireServer(unpack(sendCrew))
 			end
+		end
+
+		if settings['Utils']['Ascend'] then
+			local args = { [1] = { [1] = { [1] = "\3", [2] = "Ascension", [3] = "Make" } } }
+			ReplicatedStorage.RemoteEvent:FireServer(unpack(args))
+		end
+
+		if settings['Utils']['Aura'] then
+			local args = { [1] = { [1] = { [1] = "\3", [2] = "Aura", [3] = "Upgrade" } } }
+			ReplicatedStorage.RemoteEvent:FireServer(unpack(args))
 		end
 	end
 end)
