@@ -43,11 +43,17 @@ local defaultSettings = {
 		['Race'] = false,
 		['Kagune'] = false,
 		['Class'] = false,
-		['DropPotion'] = false,
 		['DailyRewards'] = false,
 		['WheelSpin'] = false,
 		['AutoMount'] = false,
 		['AutoCrew'] = false
+	},
+	['Potions'] = {
+		["Damage"] = false,
+		["Drop"] = false,
+		["Energy"] = false,
+		["Luck"] = false,
+		["Souls"] = false
 	},
 	['Keybinds'] = {
 		['menuKeybind'] = 'LeftShift'
@@ -579,17 +585,6 @@ Utils:AddToggle('enableAutoClass', {
 	end
 })
 
-Utils:AddToggle('enableAutoDropPotion', {
-	Text = 'Auto Drop Potion',
-	Default = settings['Utils']['DropPotion'],
-	Tooltip = 'Automatically uses Drop Boost Potion',
-
-	Callback = function(value)
-		settings['Utils']['DropPotion'] = value
-		SaveConfig()
-	end
-})
-
 Utils:AddToggle('enableClaimDailyRewards', {
 	Text = 'Claim Daily Rewards',
 	Default = settings['Utils']['DailyRewards'],
@@ -672,13 +667,6 @@ task.spawn(function()
 			ReplicatedStorage.RemoteEvent:FireServer(unpack(args))
 		end
 
-		if settings['Utils']['DropPotion'] then
-			if not PlayerGui.Utils.Content.PlayerBoosts.Drop.Visible then
-				local args = { [1] = { [1] = { [1] = "\3", [2] = "Potion", [3] = "Use", [4] = "Drop", [5] = 1 } } }
-				ReplicatedStorage.RemoteEvent:FireServer(unpack(args))
-			end
-		end
-
 		if settings['Utils']['DailyRewards'] then
 			local DailyRewards = PlayerGui['_CENTER'].DailyRewards
 			local Buttons = DailyRewards.Time.Content.Scroll
@@ -746,6 +734,104 @@ task.spawn(function()
 				NoClipping:Disconnect()
 			end
 			Clip = true
+		end
+	end
+end)
+
+
+local Potions = Tabs['Main']:AddRightGroupbox('Auto Potions')
+Potions:AddToggle('damagePotion', {
+	Text = 'Use Damage Potion',
+	Default = settings['Potions']['Damage'],
+	Tooltip = 'Automatically uses Damage Boost',
+
+	Callback = function(value)
+		settings['Potions']['Damage'] = value
+		SaveConfig()
+	end
+})
+
+Potions:AddToggle('dropPotion', {
+	Text = 'Use Drop Potion',
+	Default = settings['Potions']['Drop'],
+	Tooltip = 'Automatically uses Drop Boost',
+
+	Callback = function(value)
+		settings['Potions']['Drop'] = value
+		SaveConfig()
+	end
+})
+
+Potions:AddToggle('energyPotion', {
+	Text = 'Use Energy Potion',
+	Default = settings['Potions']['Energy'],
+	Tooltip = 'Automatically uses Energy Boost',
+
+	Callback = function(value)
+		settings['Potions']['Energy'] = value
+		SaveConfig()
+	end
+})
+
+Potions:AddToggle('luckPotion', {
+	Text = 'Use Luck Potion',
+	Default = settings['Potions']['Luck'],
+	Tooltip = 'Automatically uses Luck Boost',
+
+	Callback = function(value)
+		settings['Potions']['Luck'] = value
+		SaveConfig()
+	end
+})
+
+Potions:AddToggle('soulsPotion', {
+	Text = 'Use Souls Potion',
+	Default = settings['Potions']['Souls'],
+	Tooltip = 'Automatically uses Souls Boost',
+
+	Callback = function(value)
+		settings['Potions']['Souls'] = value
+		SaveConfig()
+	end
+})
+
+task.spawn(function()
+	while task.wait() and not Library.Unloaded do
+		task.wait(5)
+		
+		if settings['Potions']['Damage'] then
+			if not PlayerGui.Utils.Content.PlayerBoosts.Drop.Visible and tonumber(player.Potions:GetAttribute("Damage")) == 0 then
+				local args = { [1] = { [1] = { [1] = "\3", [2] = "Potion", [3] = "Use", [4] = "Damage", [5] = 1 } } }
+				ReplicatedStorage.RemoteEvent:FireServer(unpack(args))
+			end
+		end
+		
+		if settings['Potions']['Drop'] then
+			if not PlayerGui.Utils.Content.PlayerBoosts.Drop.Visible and tonumber(player.Potions:GetAttribute("Drop")) == 0 then
+				local args = { [1] = { [1] = { [1] = "\3", [2] = "Potion", [3] = "Use", [4] = "Drop", [5] = 1 } } }
+				ReplicatedStorage.RemoteEvent:FireServer(unpack(args))
+			end
+		end
+		
+		if settings['Potions']['Energy'] then
+			if not PlayerGui.Utils.Content.PlayerBoosts.Drop.Visible and tonumber(player.Potions:GetAttribute("Energy")) == 0 then
+				local args = { [1] = { [1] = { [1] = "\3", [2] = "Potion", [3] = "Use", [4] = "Energy", [5] = 1 } } }
+				ReplicatedStorage.RemoteEvent:FireServer(unpack(args))
+			end
+		end
+		
+		if settings['Potions']['Luck'] then
+			if not PlayerGui.Utils.Content.PlayerBoosts.Drop.Visible and tonumber(player.Potions:GetAttribute("Luck")) == 0 then
+				local args = { [1] = { [1] = { [1] = "\3", [2] = "Potion", [3] = "Use", [4] = "Luck", [5] = 1 } } }
+				ReplicatedStorage.RemoteEvent:FireServer(unpack(args))
+			end
+		end
+		
+		if settings['Potions']['Souls'] then
+			if not PlayerGui.Utils.Content.PlayerBoosts.Drop.Visible and tonumber(player.Potions:GetAttribute("Soul")) == 0 then
+				local args = { [1] = { [1] = { [1] = "\3", [2] = "Potion", [3] = "Use", [4] = "Soul", [5] = 1 } } }
+				ReplicatedStorage.RemoteEvent:FireServer(unpack(args))
+			end
 		end
 	end
 end)
