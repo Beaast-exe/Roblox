@@ -37,16 +37,22 @@ local defaultSettings = {
 	['AutoDefense'] = {
 		['Enabled'] = false
 	},
-	['Utils'] = {
-		['PlayerPassive'] = false,
-		['Element'] = false,
-		['Race'] = false,
-		['Kagune'] = false,
+	['Rolls'] = {
 		['Titan'] = {
 			['Enabled'] = false,
 			['Selected'] = {"Beast Titan", "Colossal Titan"},
 			['Slot'] = "1"
 		},
+		['Bloodline'] = {
+			['Enabled'] = false,
+			['Selected'] = {"Yeager", "Ackerman"}
+		}
+	},
+	['Utils'] = {
+		['PlayerPassive'] = false,
+		['Element'] = false,
+		['Race'] = false,
+		['Kagune'] = false,
 		['Class'] = false,
 		['DailyRewards'] = false,
 		['WheelSpin'] = false,
@@ -145,18 +151,18 @@ local Titans = {
 	["Colossal Titan"] = "ColossalTitan"
 }
 
-local Titans2 = {
-	["SmilingTitan"] = "Smiling Titan",
-	["AttackTitan"] = "Attack Titan",
-	["FemaleTitan"] = "Female Titan",
-	["ArmoredTitan"] = "Armored Titan",
-	["WarhammerTitan"] = "Warhammer Titan",
-	["BeastTitan"] = "Beast Titan",
-	["ColossalTitan"] = "Colossal Titan"
+local Bloodlines = {
+	["Blouse"] = "Blouse",
+	["Smith"] = "Smith",
+	["Zeke"] = "Zeke",
+	["Tybur"] = "Tybur",
+	["Yeager"] = "Yeager",
+	["Ackerman"] = "Ackerman"
 }
 
 local ItemsNames = {"OP Key", "Elemental Token", "Gold Bar", "Amulet Shards", "Avatar Spin", "Class Spin", "Shiny Shard", "Spinal Fluid", "Spiritual Token", "Passive Token", "Blood", "Enchantment Token", "Star Balls", }
 local TitansNames = {"Smiling Titan", "Attack Titan", "Female Titan", "Armored Titan", "Warhammer Titan", "Beast Titan", "Colossal Titan"}
+local BloodlinesNames = {"Blouse", "Smith", "Zeke", "Tybur", "Yeager", "Ackerman"}
 
 local createdDefense = false
 local minute = os.date("%M")
@@ -579,15 +585,14 @@ end)
 -- // ROLLS
 local Rolls = Tabs['Main']:AddRightGroupbox("Auto Rolls")
 Rolls:AddDropdown('selectedTitanToGet', {
-	Text = 'Selected Titan',
+	Text = 'Selected Titans',
 	Tooltip = 'Select Titan to roll',
-	Default = settings['Utils']['Titan']['Selected'],
-	AllowNull = false,
+	Default = settings['Rolls']['Titan']['Selected'],
 	Multi = true,
 	Values = TitansNames,
 
 	Callback = function(value)
-		settings['Utils']['Titan']['Selected'] = value
+		settings['Rolls']['Titan']['Selected'] = value
 		SaveConfig()
 	end
 })
@@ -595,52 +600,105 @@ Rolls:AddDropdown('selectedTitanToGet', {
 Rolls:AddDropdown('selectedTitanToRollOn', {
 	Text = 'Titan Slot',
 	Tooltip = 'Select slot to roll titan',
-	Default = settings['Utils']['Titan']['Slot'],
+	Default = settings['Rolls']['Titan']['Slot'],
 	Multi = false,
 	Values = {"1", "2"},
 
 	Callback = function(value)
-		settings['Utils']['Titan']['Slot'] = value
+		settings['Rolls']['Titan']['Slot'] = value
 		SaveConfig()
 	end
 })
 
 Rolls:AddToggle('enableTitanRoll', {
 	Text = 'Auto Roll Titan',
-	Default = false, --settings['Utils']['Titan']['Enabled'],
+	Default = false, --settings['Rolls']['Titan']['Enabled'],
 	Tooltip = 'Rerolls your Titans',
 
 	Callback = function(value)
-		settings['Utils']['Titan']['Enabled'] = value
+		settings['Rolls']['Titan']['Enabled'] = value
 		SaveConfig()
 	end
 })
 
 local selectedTitansToGet = {}
-
 task.spawn(function()
 	while task.wait() and not Library.Unloaded do
-		if settings['Utils']['Titan']['Enabled'] then
+		if settings['Rolls']['Titan']['Enabled'] then
 			local equippedTitan = nil
 			table.clear(selectedTitansToGet)
 
-			for i, v in pairs(settings['Utils']['Titan']['Selected']) do
+			for i, v in pairs(settings['Rolls']['Titan']['Selected']) do
 				table.insert(selectedTitansToGet, Titans[i])
 			end
 
-			if settings['Utils']['Titan']['Slot'] == "1" then equippedTitan = player:GetAttribute("Titan1") end
-			if settings['Utils']['Titan']['Slot'] == "2" then equippedTitan = player:GetAttribute("Titan2") end
-			if equippedTitan == nil then return end
-
-			local selectedTitan = settings['Utils']['Titan']['Selected']
-			
-			if not table.find(selectedTitansToGet, equippedTitan) then
-				local args = { [1] = { [1] = { [1] = "\3", [2] = "Titan", [3] = "Spin", [4] = settings['Utils']['Titan']['Slot'] } } }
-				ReplicatedStorage.RemoteEvent:FireServer(unpack(args))
+			if settings['Rolls']['Titan']['Slot'] == "1" then equippedTitan = player:GetAttribute("Titan1") end
+			if settings['Rolls']['Titan']['Slot'] == "2" then 
+				if player:GetAttribute("BuyedTitan2") then
+					equippedTitan = player:GetAttribute("Titan2")
+				else
+					equippedTitan = nil
+				end
 			end
-
-			task.wait(0.1)
+			
+			if equippedTitan ~= nil then
+				if not table.find(selectedTitansToGet, equippedTitan) then
+					local args = { [1] = { [1] = { [1] = "\3", [2] = "Titan", [3] = "Spin", [4] = settings['Rolls']['Titan']['Slot'] } } }
+					ReplicatedStorage.RemoteEvent:FireServer(unpack(args))
+				end
+			end
 		end
+	
+		task.wait(0.1)
+	end
+end)
+
+Rolls:AddDropdown('selectedBloodlineToGet', {
+	Text = 'Selected Bloodlines',
+	Tooltip = 'Select Bloodlines to roll',
+	Default = settings['Rolls']['Bloodline']['Selected'],
+	Multi = true,
+	Values = BloodlinesNames,
+
+	Callback = function(value)
+		settings['Rolls']['Bloodline']['Selected'] = value
+		SaveConfig()
+	end
+})
+
+Rolls:AddToggle('enableBoodlineRoll', {
+	Text = 'Auto Roll Bloodline',
+	Default = false, --settings['Rolls']['Bloodline']['Enabled'],
+	Tooltip = 'Rerolls your Bloodlines',
+
+	Callback = function(value)
+		settings['Rolls']['Bloodline']['Enabled'] = value
+		SaveConfig()
+	end
+})
+
+local selectedBloodlinesToGet = {}
+task.spawn(function()
+	while task.wait() and not Library.Unloaded do
+		if settings['Rolls']['Bloodline']['Enabled'] then
+			local equippedBloodline = nil
+			table.clear(selectedBloodlinesToGet)
+
+			for i, v in pairs(settings['Rolls']['Bloodline']['Selected']) do
+				table.insert(selectedBloodlinesToGet, Bloodlines[i])
+			end
+			
+			equippedBloodline = player:GetAttribute("Bloodline")
+
+			if equippedBloodline ~= nil then
+				if not table.find(selectedBloodlinesToGet, equippedBloodline) then
+					local args = { [1] = { [1] = { [1] = "\3", [2] = "Bloodline", [3] = "Spin" } } }
+					ReplicatedStorage.RemoteEvent:FireServer(unpack(args))
+				end
+			end
+		end
+		
+		task.wait(0.1)
 	end
 end)
 
