@@ -42,6 +42,11 @@ local defaultSettings = {
 		['Element'] = false,
 		['Race'] = false,
 		['Kagune'] = false,
+		['Titan'] = {
+			['Enabled'] = false,
+			['Selected'] = {"Beast Titan", "Colossal Titan"},
+			['Slot'] = "1"
+		},
 		['Class'] = false,
 		['DailyRewards'] = false,
 		['WheelSpin'] = false,
@@ -130,7 +135,28 @@ local Items = {
 	["OP Key"] = "OPKeys"
 }
 
+local Titans = {
+	["Smiling Titan"] = "SmilingTitan",
+	["Attack Titan"] = "AttackTitan",
+	["Female Titan"] = "FemaleTitan",
+	["Armored Titan"] = "ArmoredTitan",
+	["Warhammer Titan"] = "WarhammerTitan",
+	["Beast Titan"] = "BeastTitan",
+	["Colossal Titan"] = "ColossalTitan"
+}
+
+local Titans2 = {
+	["SmilingTitan"] = "Smiling Titan",
+	["AttackTitan"] = "Attack Titan",
+	["FemaleTitan"] = "Female Titan",
+	["ArmoredTitan"] = "Armored Titan",
+	["WarhammerTitan"] = "Warhammer Titan",
+	["BeastTitan"] = "Beast Titan",
+	["ColossalTitan"] = "Colossal Titan"
+}
+
 local ItemsNames = {"OP Key", "Elemental Token", "Gold Bar", "Amulet Shards", "Avatar Spin", "Class Spin", "Shiny Shard", "Spinal Fluid", "Spiritual Token", "Passive Token", "Blood", "Enchantment Token", "Star Balls", }
+local TitansNames = {"Smiling Titan", "Attack Titan", "Female Titan", "Armored Titan", "Warhammer Titan", "Beast Titan", "Colossal Titan"}
 
 local createdDefense = false
 local minute = os.date("%M")
@@ -140,7 +166,7 @@ local playerMode
 
 function Initialize()
 	Library:Notify(string.format('Script Loaded in %.2f second(s)!', tick() - StartTick), 5)
-	print("Loaded Beaast Hub")
+	print("[Beaast Hub] Loaded")
 end
 
 task.spawn(function()
@@ -168,7 +194,28 @@ function findNearestEnemy()
 		if targetEnemy:IsA("Model") and targetEnemy:FindFirstChild('HumanoidRootPart') and targetEnemy:FindFirstChild('_STATS')  and tonumber(targetEnemy['_STATS']['CurrentHP'].Value) > 0 then
 			local Distance = (character.HumanoidRootPart.Position - targetEnemy.HumanoidRootPart.Position).magnitude
 
-			if Distance <= 15000 and Distance < ClosestDistance then
+			if Distance <= 1500 and Distance < ClosestDistance then
+				Closest = targetEnemy
+				ClosestDistance = Distance
+			end
+		end
+	end
+
+	if Closest == nil then ClosestDistance = math.huge end
+
+	return Closest, ClosestDistance
+end
+
+
+function findNearestEnemyInWorld(world)
+	local Closest = nil
+	local ClosestDistance = math.huge
+
+	for _, targetEnemy in ipairs(world) do
+		if targetEnemy:IsA("Model") and targetEnemy:FindFirstChild('HumanoidRootPart') and targetEnemy:FindFirstChild('_STATS')  and tonumber(targetEnemy['_STATS']['CurrentHP'].Value) > 0 then
+			local Distance = (character.HumanoidRootPart.Position - targetEnemy.HumanoidRootPart.Position).magnitude
+
+			if Distance <= 1500 and Distance < ClosestDistance then
 				Closest = targetEnemy
 				ClosestDistance = Distance
 			end
@@ -402,8 +449,7 @@ task.spawn(function()
 	end
 end)
 
-local AutoDefense = Tabs['Main']:AddRightGroupbox('Auto Defense')
-AutoDefense:AddToggle('enableAutoDefense', {
+AutoFarm:AddToggle('enableAutoDefense', {
 	Text = 'Auto Defense',
 	Default = settings['AutoDefense']['Enabled'],
 	Tooltip = 'Enable Auto Farm',
@@ -526,6 +572,74 @@ task.spawn(function()
 					end
 				end
 			end
+		end
+	end
+end)
+
+-- // ROLLS
+local Rolls = Tabs['Main']:AddRightGroupbox("Auto Rolls")
+Rolls:AddDropdown('selectedTitanToGet', {
+	Text = 'Selected Titan',
+	Tooltip = 'Select Titan to roll',
+	Default = settings['Utils']['Titan']['Selected'],
+	AllowNull = false,
+	Multi = true,
+	Values = TitansNames,
+
+	Callback = function(value)
+		settings['Utils']['Titan']['Selected'] = value
+		SaveConfig()
+	end
+})
+
+Rolls:AddDropdown('selectedTitanToRollOn', {
+	Text = 'Titan Slot',
+	Tooltip = 'Select slot to roll titan',
+	Default = settings['Utils']['Titan']['Slot'],
+	Multi = false,
+	Values = {"1", "2"},
+
+	Callback = function(value)
+		settings['Utils']['Titan']['Slot'] = value
+		SaveConfig()
+	end
+})
+
+Rolls:AddToggle('enableTitanRoll', {
+	Text = 'Auto Roll Titan',
+	Default = false, --settings['Utils']['Titan']['Enabled'],
+	Tooltip = 'Rerolls your Titans',
+
+	Callback = function(value)
+		settings['Utils']['Titan']['Enabled'] = value
+		SaveConfig()
+	end
+})
+
+local selectedTitansToGet = {}
+
+task.spawn(function()
+	while task.wait() and not Library.Unloaded do
+		if settings['Utils']['Titan']['Enabled'] then
+			local equippedTitan = nil
+			table.clear(selectedTitansToGet)
+
+			for i, v in pairs(settings['Utils']['Titan']['Selected']) do
+				table.insert(selectedTitansToGet, Titans[i])
+			end
+
+			if settings['Utils']['Titan']['Slot'] == "1" then equippedTitan = player:GetAttribute("Titan1") end
+			if settings['Utils']['Titan']['Slot'] == "2" then equippedTitan = player:GetAttribute("Titan2") end
+			if equippedTitan == nil then return end
+
+			local selectedTitan = settings['Utils']['Titan']['Selected']
+			
+			if not table.find(selectedTitansToGet, equippedTitan) then
+				local args = { [1] = { [1] = { [1] = "\3", [2] = "Titan", [3] = "Spin", [4] = settings['Utils']['Titan']['Slot'] } } }
+				ReplicatedStorage.RemoteEvent:FireServer(unpack(args))
+			end
+
+			task.wait(0.1)
 		end
 	end
 end)
@@ -692,6 +806,27 @@ task.spawn(function()
 		end
 
 		if settings['Utils']['DailyRewards'] then
+			local Counter = tonumber(player.DailyRewards:GetAttribute("Counter"))
+			local TimeToReset = tonumber(player.DailyRewards:GetAttribute("TimeToReset"))
+			local List = player.DailyRewards.List
+
+			for i, v in pairs(List:GetChildren()) do
+				if not v:GetAttribute("Claimed") then
+					if Counter > tonumber(v:GetAttribute("Timer")) then
+						local args = { [1] = { [1] = { [1] = "\3", [2] = "DailyRewards", [3] = "Claim", [4] = v.Name } } }
+						ReplicatedStorage.RemoteEvent:FireServer(unpack(args))
+					end
+				end
+			end
+
+			if TimeToReset == 0 then
+				if List["1"]:GetAttribute("Claimed") and List["2"]:GetAttribute("Claimed") and List["3"]:GetAttribute("Claimed") and List["4"]:GetAttribute("Claimed") and List["5"]:GetAttribute("Claimed") and List["6"]:GetAttribute("Claimed") and List["7"]:GetAttribute("Claimed") and List["8"]:GetAttribute("Claimed") then
+					local args = { [1] = { [1] = { [1] = "\3", [2] = "DailyRewards",  [3] = "Reset" } } }
+					ReplicatedStorage.RemoteEvent:FireServer(unpack(args))
+				end
+			end
+
+			--[[
 			local DailyRewards = PlayerGui['_CENTER'].DailyRewards
 			local Buttons = DailyRewards.Time.Content.Scroll
 
@@ -708,6 +843,7 @@ task.spawn(function()
 				local args = { [1] = { [1] = { [1] = "\3", [2] = "DailyRewards",  [3] = "Reset" } } }
 				ReplicatedStorage.RemoteEvent:FireServer(unpack(args))
 			end
+			]]
 		end
 
 		if settings['Utils']['WheelSpin'] then
@@ -904,7 +1040,7 @@ task.spawn(function()
 end)
 
 Library:OnUnload(function()
-	print('Unloaded!')
+	print('[Beaast Hub] Unloaded')
 	Library.Unloaded = true
 end)
 
