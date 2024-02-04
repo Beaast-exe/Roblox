@@ -29,6 +29,7 @@ local defaultSettings = {
 		['Enabled'] = false,
 		['Sacrifice'] = "OP Key",
 		['Return'] = "OP Key",
+		["Amount"] = "1",
 		['OPCrate'] = false
 	},
 	['AutoDungeon'] = {
@@ -352,6 +353,19 @@ AutoExchange:AddDropdown('autoExchangeReturn', {
 	end
 })
 
+AutoExchange:AddDropdown('autoExchangeAmount', {
+	Text = 'Exchange Amount (Each Roll)',
+	Tooltip = 'The amount to exchange each time',
+	Default = settings['Exchange']['Amount'],
+	Multi = false,
+	Values = {"1", "5", "10", "25", "50", "100"},
+
+	Callback = function(value)
+		settings['Exchange']['Amount'] = value
+		SaveConfig()
+	end
+})
+
 AutoExchange:AddToggle('enableAutoExchange', {
 	Text = 'Enable Auto Exchange',
 	Default = settings['Exchange']['Enabled'],
@@ -379,9 +393,10 @@ task.spawn(function()
 		if settings['Exchange']['Enabled'] then
 			local sacrificeItem = Items[settings['Exchange']['Sacrifice']]
 			local returnItem = Items[settings['Exchange']['Return']]
+			local amount = settings['Exchange']['Amount']
 
 			if tonumber(player.Exchange:GetAttribute("Amount")) < 1000 then
-				local args = { [1] = { [1] = { [1] = "\3", [2] = "Exchange", [3] = "Make", [4] = sacrificeItem, [5] = returnItem } } }
+				local args = { [1] = { [1] = { [1] = "\3", [2] = "Exchange", [3] = "Make", [4] = sacrificeItem, [5] = returnItem, [6] = amount } } }
 				ReplicatedStorage.RemoteEvent:FireServer(unpack(args))
 			else
 				if tonumber(player.Exchange:GetAttribute("TimeToReset")) < tonumber(unixTimestamp) then
