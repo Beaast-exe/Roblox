@@ -166,6 +166,7 @@ local BloodlinesNames = {"Blouse", "Smith", "Zeke", "Tybur", "Yeager", "Ackerman
 
 local createdDefense = false
 local minute = os.date("%M")
+local unixTimestamp
 local NoClipping = nil
 local CLip = true
 local playerMode
@@ -175,16 +176,17 @@ function Initialize()
 	print("[Beaast Hub] Loaded")
 end
 
-task.spawn(function()
-	while task.wait() and not Library.Unloaded do
-		playerMode = player:GetAttribute("Mode")
-		player.GameplayPaused = false
-	end
-end)
+-- task.spawn(function()
+-- 	while task.wait() and not Library.Unloaded do
+-- 		playerMode = player:GetAttribute("Mode")
+-- 		player.GameplayPaused = false
+-- 	end
+-- end)
 
 task.spawn(function()
 	while not Library.Unloaded do
 		minute = os.date("%M")
+		unixTimestamp = os.time(os.date("!*t"))
 		task.wait(0.1)
 	end
 end)
@@ -382,7 +384,7 @@ task.spawn(function()
 				local args = { [1] = { [1] = { [1] = "\3", [2] = "Exchange", [3] = "Make", [4] = sacrificeItem, [5] = returnItem } } }
 				ReplicatedStorage.RemoteEvent:FireServer(unpack(args))
 			else
-				if tonumber(player.Exchange:GetAttribute("TimeToReset")) == 0 then
+				if tonumber(player.Exchange:GetAttribute("TimeToReset")) < tonumber(unixTimestamp) then
 					local args = { [1] = { [1] = { [1] = "\3", [2] = "Exchange", [3] = "Reset" } } }
 					ReplicatedStorage.RemoteEvent:FireServer(unpack(args))
 				end
@@ -877,7 +879,7 @@ task.spawn(function()
 				end
 			end
 
-			if TimeToReset == 0 then
+			if TimeToReset < tonumber(unixTimestamp) then
 				if List["1"]:GetAttribute("Claimed") and List["2"]:GetAttribute("Claimed") and List["3"]:GetAttribute("Claimed") and List["4"]:GetAttribute("Claimed") and List["5"]:GetAttribute("Claimed") and List["6"]:GetAttribute("Claimed") and List["7"]:GetAttribute("Claimed") and List["8"]:GetAttribute("Claimed") then
 					local args = { [1] = { [1] = { [1] = "\3", [2] = "DailyRewards",  [3] = "Reset" } } }
 					ReplicatedStorage.RemoteEvent:FireServer(unpack(args))
