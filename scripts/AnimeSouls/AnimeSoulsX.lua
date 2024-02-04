@@ -394,6 +394,7 @@ task.spawn(function()
 			local sacrificeItem = Items[settings['Exchange']['Sacrifice']]
 			local returnItem = Items[settings['Exchange']['Return']]
 			local amount = settings['Exchange']['Amount']
+			print(amount)
 
 			if tonumber(player.Exchange:GetAttribute("Amount")) < 1000 then
 				local args = { [1] = { [1] = { [1] = "\3", [2] = "Exchange", [3] = "Make", [4] = sacrificeItem, [5] = returnItem, [6] = amount } } }
