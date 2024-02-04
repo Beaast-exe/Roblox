@@ -39,6 +39,7 @@ local defaultSettings = {
 		['Enabled'] = false
 	},
 	['Rolls'] = {
+		['Avatar'] = false,
 		['Titan'] = {
 			['Enabled'] = false,
 			['Selected'] = {"Beast Titan", "Colossal Titan"},
@@ -602,6 +603,27 @@ end)
 
 -- // ROLLS
 local Rolls = Tabs['Main']:AddRightGroupbox("Auto Rolls")
+Rolls:AddDropdown('enableAvatarRoll', {
+	Text = 'Auto Roll Avatar',
+	Default = settings['Rolls']['Avatar'],
+	Tooltip = 'Auto rolls your avatar (Must be in area)',
+
+	Callback = function(value)
+		settings['Rolls']['Avatar'] = value
+		SaveConfig()
+	end
+})
+
+task.spawn(function()
+	while task.wait() and not Library.Unloaded do
+		if settings['Rolls']['Avatar'] then
+			local args = { [1] = { [1] = { [1] = "\3", [2] = "Avatars", [3] = "Spin" } } }
+			ReplicatedStorage.RemoteEvent:FireServer(unpack(args))
+			task.wait(0.3)
+		end
+	end
+end)
+
 Rolls:AddDropdown('selectedTitanToGet', {
 	Text = 'Selected Titans',
 	Tooltip = 'Select Titan to roll',
@@ -630,7 +652,7 @@ Rolls:AddDropdown('selectedTitanToRollOn', {
 
 Rolls:AddToggle('enableTitanRoll', {
 	Text = 'Auto Roll Titan',
-	Default = false, --settings['Rolls']['Titan']['Enabled'],
+	Default = false,
 	Tooltip = 'Rerolls your Titans',
 
 	Callback = function(value)
