@@ -668,7 +668,7 @@ Rolls:AddDropdown('selectedBloodlineToGet', {
 
 Rolls:AddToggle('enableBoodlineRoll', {
 	Text = 'Auto Roll Bloodline',
-	Default = false, --settings['Rolls']['Bloodline']['Enabled'],
+	Default = false,
 	Tooltip = 'Rerolls your Bloodlines',
 
 	Callback = function(value)
