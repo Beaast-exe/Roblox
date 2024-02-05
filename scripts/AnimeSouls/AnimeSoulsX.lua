@@ -603,7 +603,7 @@ end)
 
 -- // ROLLS
 local Rolls = Tabs['Main']:AddRightGroupbox("Auto Rolls")
-Rolls:AddDropdown('enableAvatarRoll', {
+Rolls:AddToggle('enableAvatarRoll', {
 	Text = 'Auto Roll Avatar',
 	Default = settings['Rolls']['Avatar'],
 	Tooltip = 'Auto rolls your avatar (Must be in area)',
