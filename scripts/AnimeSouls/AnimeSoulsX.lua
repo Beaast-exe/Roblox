@@ -598,6 +598,8 @@ task.spawn(function()
 				end
 			end
 		end
+
+		task.wait(0.2)
 	end
 end)
 
@@ -688,8 +690,8 @@ task.spawn(function()
 				end
 			end
 		end
-	
-		task.wait(0.1)
+
+		task.wait(0.2)
 	end
 end)
 
@@ -737,8 +739,8 @@ task.spawn(function()
 				end
 			end
 		end
-		
-		task.wait(0.1)
+
+		task.wait(0.2)
 	end
 end)
 
