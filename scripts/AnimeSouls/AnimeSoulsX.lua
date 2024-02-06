@@ -665,7 +665,7 @@ task.spawn(function()
 			table.clear(selectedTitansToGet)
 
 			for i, v in pairs(settings['Rolls']['Titan']['Selected']) do
-				table.insert(selectedTitansToGet, Titans[i])
+				table.insert(selectedTitansToGet, Titans[v])
 			end
 
 			if settings['Rolls']['Titan']['Slot'] == "1" then equippedTitan = player:GetAttribute("Titan1") end
