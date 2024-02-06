@@ -4,7 +4,8 @@ repeat task.wait() until game:IsLoaded()
 local StartTick = tick()
 
 local HttpService = game:GetService('HttpService')
-local repo = 'https://raw.githubusercontent.com/violin-suzutsuki/LinoriaLib/main/'
+--local repo = 'https://raw.githubusercontent.com/violin-suzutsuki/LinoriaLib/main/'
+local repo = 'https://raw.githubusercontent.com/TrapstarKSSKSKSKKS/LinoriaLib/main/'
 local Library = loadstring(game:HttpGet(repo .. 'Library.lua'))()
 local ThemeManager = loadstring(game:HttpGet(repo .. 'addons/ThemeManager.lua'))()
 
@@ -691,7 +692,7 @@ task.spawn(function()
 			end
 		end
 
-		task.wait(0.2)
+		task.wait(0.15)
 	end
 end)
 
