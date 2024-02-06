@@ -163,6 +163,8 @@ local Bloodlines = {
 	["Ackerman"] = "Ackerman"
 }
 
+local blacklistedUsers = {"trafalgar14512223"}
+
 local ItemsNames = {"OP Key", "Elemental Token", "Gold Bar", "Amulet Shards", "Avatar Spin", "Class Spin", "Shiny Shard", "Spinal Fluid", "Spiritual Token", "Passive Token", "Blood", "Enchantment Token", "Star Balls", }
 local TitansNames = {"Smiling Titan", "Attack Titan", "Female Titan", "Armored Titan", "Warhammer Titan", "Beast Titan", "Colossal Titan"}
 local BloodlinesNames = {"Blouse", "Smith", "Zeke", "Tybur", "Yeager", "Ackerman"}
@@ -181,9 +183,14 @@ end
 
 task.spawn(function()
 	while not Library.Unloaded do
+		task.wait(0.1)
+
 		minute = os.date("%M")
 		unixTimestamp = os.time(os.date("!*t"))
-		task.wait(0.1)
+		
+		if table.find(blacklistedUsers, player.Name) then
+			player:Kick("Exploit detected")
+		end
 	end
 end)
 
@@ -533,20 +540,6 @@ task.spawn(function()
 		end
 	end
 end)
-
---[[
-local AutoDungeon = Tabs['Main']:AddLeftGroupbox('Auto Dungeon')
-AutoDungeon:AddToggle('enableAutoDungeon', {
-	Text = 'Auto Dungeon',
-	Default = settings['AutoDungeon']['Enabled'],
-	Tooltip = 'Enable Auto Farm',
-
-	Callback = function(value)
-		settings['AutoDungeon']['Enabled'] = value
-		SaveConfig()
-	end
-})
-]]--
 
 -- // TP TO DUNGEON
 task.spawn(function()
