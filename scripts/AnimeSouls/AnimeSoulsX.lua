@@ -721,7 +721,7 @@ task.spawn(function()
 			table.clear(selectedBloodlinesToGet)
 
 			for i, v in pairs(settings['Rolls']['Bloodline']['Selected']) do
-				table.insert(selectedBloodlinesToGet, Bloodlines[i])
+				table.insert(selectedBloodlinesToGet, Bloodlines[v])
 			end
 			
 			equippedBloodline = player:GetAttribute("Bloodline")
