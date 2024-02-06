@@ -25,5 +25,5 @@ elseif placeID == 9292879820 then -- [[ GRASS CUTTING INCREMENTAL ]] --
 elseif placeID == 14433762945 then -- [[ ANIME CHAMPIONS SIMULATOR ]] --
 	execute('AnimeChampions/AnimeChampionsSimulator.lua')
 elseif placeID == 15367026228 then
-	execute('AnimeSouls/AnimeSoulsX.lua')
+	execute('AnimeSouls/AnimeSoulsX_Protected.lua')
 end
