@@ -179,13 +179,6 @@ function Initialize()
 	print("[Beaast Hub] Loaded")
 end
 
--- task.spawn(function()
--- 	while task.wait() and not Library.Unloaded do
--- 		playerMode = player:GetAttribute("Mode")
--- 		player.GameplayPaused = false
--- 	end
--- end)
-
 task.spawn(function()
 	while not Library.Unloaded do
 		minute = os.date("%M")
