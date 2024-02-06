@@ -43,12 +43,12 @@ local defaultSettings = {
 		['Avatar'] = false,
 		['Titan'] = {
 			['Enabled'] = false,
-			['Selected'] = {"Beast Titan", "Colossal Titan"},
+			['Selected'] = {"Colossal Titan"},
 			['Slot'] = "1"
 		},
 		['Bloodline'] = {
 			['Enabled'] = false,
-			['Selected'] = {"Yeager", "Ackerman"}
+			['Selected'] = {"Ackerman"}
 		}
 	},
 	['Utils'] = {
@@ -141,7 +141,8 @@ local Items = {
 	["Blood"] = "Bloods",
 	["Enchantment Token"] = "EnchantmentTokens",
 	["Star Balls"] = "StarBalls",
-	["OP Key"] = "OPKeys"
+	["OP Key"] = "OPKeys",
+	["Defense Key"] = "DefenseKey"
 }
 
 local Titans = {
@@ -165,7 +166,7 @@ local Bloodlines = {
 
 local blacklistedUsers = {"trafalgar14512223"}
 
-local ItemsNames = {"OP Key", "Elemental Token", "Gold Bar", "Amulet Shards", "Avatar Spin", "Class Spin", "Shiny Shard", "Spinal Fluid", "Spiritual Token", "Passive Token", "Blood", "Enchantment Token", "Star Balls", }
+local ItemsNames = {"OP Key", "Defense Key", "Elemental Token", "Gold Bar", "Amulet Shards", "Avatar Spin", "Class Spin", "Shiny Shard", "Spinal Fluid", "Spiritual Token", "Passive Token", "Blood", "Enchantment Token", "Star Balls", }
 local TitansNames = {"Smiling Titan", "Attack Titan", "Female Titan", "Armored Titan", "Warhammer Titan", "Beast Titan", "Colossal Titan"}
 local BloodlinesNames = {"Blouse", "Smith", "Zeke", "Tybur", "Yeager", "Ackerman"}
 
@@ -173,8 +174,7 @@ local createdDefense = false
 local minute = os.date("%M")
 local unixTimestamp
 local NoClipping = nil
-local CLip = true
-local playerMode
+local Clip = true
 
 function Initialize()
 	Library:Notify(string.format('Script Loaded in %.2f second(s)!', tick() - StartTick), 5)
@@ -188,9 +188,9 @@ task.spawn(function()
 		minute = os.date("%M")
 		unixTimestamp = os.time(os.date("!*t"))
 		
-		if table.find(blacklistedUsers, player.Name) then
-			player:Kick("Exploit detected")
-		end
+		-- if table.find(blacklistedUsers, player.Name) then
+		-- 	player:Kick("Exploit detected")
+		-- end
 	end
 end)
 
